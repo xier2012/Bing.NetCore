@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Bing.Aspects;
 using Bing.Logs.Abstractions;
 
 namespace Bing.Logs
@@ -22,6 +17,11 @@ namespace Bing.Logs
         /// 跟踪级别是否启用
         /// </summary>
         bool IsTraceEnabled { get; }
+
+        /// <summary>
+        /// 名称
+        /// </summary>
+        string Name { get; }
 
         /// <summary>
         /// 设置内容

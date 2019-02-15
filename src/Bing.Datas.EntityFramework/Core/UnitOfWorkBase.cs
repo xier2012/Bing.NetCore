@@ -1,31 +1,52 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq.Expressions;
+using System.Data;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Bing.Datas.Configs;
 using Bing.Datas.EntityFramework.Logs;
+using Bing.Datas.Matedatas;
+using Bing.Datas.Sql;
+using Bing.Datas.Transactions;
 using Bing.Datas.UnitOfWorks;
 using Bing.Domains.Entities;
 using Bing.Domains.Entities.Auditing;
 using Bing.Exceptions;
+using Bing.Helpers;
 using Bing.Logs;
 using Bing.Sessions;
+using Bing.Utils.Extensions;
 using Bing.Utils.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Bing.Datas.EntityFramework.Core
 {
     /// <summary>
     /// 工作单元
     /// </summary>
-    public abstract class UnitOfWorkBase:DbContext,IUnitOfWork
+    public abstract class UnitOfWorkBase:DbContext,IUnitOfWork,IDatabase,IEntityMatedata
     {
+        #region 字段
+
+        /// <summary>
+        /// 映射字典
+        /// </summary>
+        private static readonly ConcurrentDictionary<Type, IEnumerable<IMap>> Maps;
+
+        /// <summary>
+        /// 日志工厂
+        /// </summary>
+        private static readonly ILoggerFactory LoggerFactory;
+
+        #endregion
+
         #region 属性
 
         /// <summary>
@@ -38,17 +59,18 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         public ISession Session { get; set; }
 
-        /// <summary>
-        /// 是否启用逻辑删除过滤
-        /// </summary>
-        protected virtual bool IsDeleteFilterEnabled => DataConfig.EnabledDeleteFilter;
-
         #endregion
 
-        #region 字段
+        #region 静态构造函数
 
-        private static MethodInfo ConfigureGlobalFiltersMethodInfo =
-            typeof(UnitOfWorkBase).GetMethod(nameof(ConfigureGlobalFilters), BindingFlags.Instance | BindingFlags.NonPublic);
+        /// <summary>
+        /// 初始化一个<see cref="UnitOfWorkBase"/>类型的静态实例
+        /// </summary>
+        static UnitOfWorkBase()
+        {
+            Maps = new ConcurrentDictionary<Type, IEnumerable<IMap>>();
+            LoggerFactory = new LoggerFactory(new[] {new EfLogProvider(),});
+        }
 
         #endregion
 
@@ -63,7 +85,7 @@ namespace Bing.Datas.EntityFramework.Core
         {
             manager?.Register(this);
             TraceId = Guid.NewGuid().ToString();
-            Session = NullSession.Instance;
+            Session = Bing.Security.Sessions.Session.Instance;
         }
 
         #endregion
@@ -91,7 +113,8 @@ namespace Bing.Datas.EntityFramework.Core
                 return;
             }
             builder.EnableSensitiveDataLogging();
-            builder.UseLoggerFactory(new LoggerFactory(new[] { GetLogProvider(log) }));
+            builder.EnableDetailedErrors();
+            builder.UseLoggerFactory(LoggerFactory);
         }
 
         /// <summary>
@@ -102,7 +125,7 @@ namespace Bing.Datas.EntityFramework.Core
         {
             try
             {
-                return Log.GetLogByName(EfLog.TRACE_LOG_NAME);
+                return Log.GetLog(EfLog.TraceLogName);
             }
             catch
             {
@@ -117,18 +140,101 @@ namespace Bing.Datas.EntityFramework.Core
         /// <returns></returns>
         private bool IsEnabled(ILog log)
         {
-            return DataConfig.LogLevel != DataLogLevel.Off && log.IsTraceEnabled;
+            var config = GetConfig();
+            if (config.LogLevel == DataLogLevel.Off)
+            {
+                return false;
+            }
+
+            if (log.IsTraceEnabled == false)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
-        /// 获取日志提供器
+        /// 获取配置
         /// </summary>
-        /// <param name="log">日志操作</param>
         /// <returns></returns>
-        protected virtual ILoggerProvider GetLogProvider(ILog log)
+        private DataConfig GetConfig()
         {
-            return new EfLogProvider(log, this);
+            try
+            {
+                var options = Ioc.Create<IOptionsSnapshot<DataConfig>>();
+                return options.Value;
+            }
+            catch
+            {
+                return new DataConfig() { LogLevel = DataLogLevel.Sql };
+            }
         }
+
+        #endregion
+
+        #region OnModelCreating(配置映射)
+
+        /// <summary>
+        /// 配置映射
+        /// </summary>
+        /// <param name="modelBuilder">映射生成器</param>
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            foreach (var mapper in GetMaps())
+            {
+                mapper.Map(modelBuilder);
+            }            
+        }
+
+        /// <summary>
+        /// 获取映射配置列表
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerable<IMap> GetMaps()
+        {
+            return Maps.GetOrAdd(GetMapType(), GetMapsFromAssemblies());
+        }
+
+        /// <summary>
+        /// 获取映射接口类型
+        /// </summary>
+        /// <returns></returns>
+        protected abstract Type GetMapType();
+
+        /// <summary>
+        /// 从程序集获取映射配置列表
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerable<IMap> GetMapsFromAssemblies()
+        {
+            var result = new List<IMap>();
+            foreach (var assembly in GetAssemblies())
+            {
+                result.AddRange(GetMapInstances(assembly));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 获取映射实例列表
+        /// </summary>
+        /// <param name="assembly">程序集</param>
+        /// <returns></returns>
+        protected virtual IEnumerable<IMap> GetMapInstances(Assembly assembly)
+        {
+            return Reflection.GetInstancesByInterface<IMap>(assembly);
+        }
+
+        /// <summary>
+        /// 获取定义映射配置的程序集列表
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Assembly[] GetAssemblies()
+        {
+            return new[] { GetType().Assembly };
+        }        
 
         #endregion
 
@@ -165,176 +271,6 @@ namespace Bing.Datas.EntityFramework.Core
             catch (DbUpdateConcurrencyException ex)
             {
                 throw new ConcurrencyException(ex);
-            }
-        }
-
-        #endregion
-
-        #region OnModelCreating(配置映射)
-        /// <summary>
-        /// 配置映射
-        /// </summary>
-        /// <param name="modelBuilder">映射生成器</param>
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            foreach (var mapper in GetMaps())
-            {
-                mapper.Map(modelBuilder);
-            }
-
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-            {
-                ConfigureGlobalFiltersMethodInfo.MakeGenericMethod(entityType.ClrType)
-                    .Invoke(this, new object[] {modelBuilder, entityType});
-            }
-        }
-
-        /// <summary>
-        /// 获取映射配置列表
-        /// </summary>
-        /// <returns></returns>
-        private IEnumerable<IMap> GetMaps()
-        {
-            var result = new List<IMap>();
-            foreach (var assembly in GetAssemblies())
-            {
-                result.AddRange(GetMapTypes(assembly));
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// 获取定义映射配置的程序集列表
-        /// </summary>
-        /// <returns></returns>
-        protected virtual Assembly[] GetAssemblies()
-        {
-            return new[] { GetType().GetTypeInfo().Assembly };
-        }
-
-        /// <summary>
-        /// 获取映射类型列表
-        /// </summary>
-        /// <param name="assembly">程序集</param>
-        /// <returns></returns>
-        protected virtual IEnumerable<IMap> GetMapTypes(Assembly assembly)
-        {
-            return Bing.Utils.Helpers.Reflection.GetInstancesByInterface<IMap>(assembly);
-        }
-
-        /// <summary>
-        /// 配置全局过滤器
-        /// </summary>
-        /// <typeparam name="TEntity">实体类型</typeparam>
-        /// <param name="modelBuilder">映射生成器</param>
-        /// <param name="entityType">实体类型</param>
-        protected void ConfigureGlobalFilters<TEntity>(ModelBuilder modelBuilder, IMutableEntityType entityType)
-            where TEntity : class
-        {
-            if (entityType.BaseType == null && ShouldFilterEntity<TEntity>(entityType))
-            {
-                var filterExpression = CreateFilterExpression<TEntity>();
-                if (filterExpression != null)
-                {
-                    modelBuilder.Entity<TEntity>().HasQueryFilter(filterExpression);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 是否应该过滤实体
-        /// </summary>
-        /// <typeparam name="TEntity">实体类型</typeparam>
-        /// <param name="entityType">实体类型</param>
-        /// <returns></returns>
-        protected virtual bool ShouldFilterEntity<TEntity>(IMutableEntityType entityType) where TEntity : class
-        {
-            if (typeof(IDelete).IsAssignableFrom(typeof(TEntity)))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// 创建过滤表达式
-        /// </summary>
-        /// <typeparam name="TEntity">实体类型</typeparam>
-        /// <returns></returns>
-        protected virtual Expression<Func<TEntity, bool>> CreateFilterExpression<TEntity>() where TEntity : class
-        {
-            Expression<Func<TEntity, bool>> expression = null;
-            if (typeof(IDelete).IsAssignableFrom(typeof(TEntity)))
-            {
-                Expression<Func<TEntity, bool>> deleteFilter = e =>
-                    !((IDelete) e).IsDeleted || ((IDelete) e).IsDeleted != IsDeleteFilterEnabled;
-                expression = expression == null ? deleteFilter : CombineExpression(expression, deleteFilter);
-            }
-
-            return expression;
-        }
-
-        /// <summary>
-        /// 合并表达式
-        /// </summary>
-        /// <typeparam name="T">实体类型</typeparam>
-        /// <param name="expression1">表达式1</param>
-        /// <param name="expression2">表达式2</param>
-        /// <returns></returns>
-        protected virtual Expression<Func<T, bool>> CombineExpression<T>(Expression<Func<T, bool>> expression1,
-            Expression<Func<T, bool>> expression2)
-        {
-            var parameter = Expression.Parameter(typeof(T));
-
-            var leftVisitor=new ReplaceExpressionVisitor(expression1.Parameters[0],parameter);
-            var left = leftVisitor.Visit(expression1.Body);
-
-            var rightVisitor = new ReplaceExpressionVisitor(expression2.Parameters[0], parameter);
-            var right = rightVisitor.Visit(expression2.Body);
-
-            return Expression.Lambda<Func<T, bool>>(Expression.AndAlso(left, right), parameter);
-        }
-
-        /// <summary>
-        /// 替换表达式访问器
-        /// </summary>
-        class ReplaceExpressionVisitor:ExpressionVisitor
-        {
-            /// <summary>
-            /// 旧值
-            /// </summary>
-            private readonly Expression _oldValue;
-
-            /// <summary>
-            /// 新值
-            /// </summary>
-            private readonly Expression _newValue;
-
-            /// <summary>
-            /// 初始化一个<see cref="ReplaceExpressionVisitor"/>类型的实例
-            /// </summary>
-            /// <param name="oldValue">旧值</param>
-            /// <param name="newValue">新值</param>
-            public ReplaceExpressionVisitor(Expression oldValue, Expression newValue)
-            {
-                _oldValue = oldValue;
-                _newValue = newValue;
-            }
-
-            /// <summary>
-            /// 访问
-            /// </summary>
-            /// <param name="node">表达式</param>
-            /// <returns></returns>
-            public override Expression Visit(Expression node)
-            {
-                if (node == _oldValue)
-                {
-                    return _newValue;
-                }
-
-                return base.Visit(node);
             }
         }
 
@@ -432,15 +368,57 @@ namespace Bing.Datas.EntityFramework.Core
         #endregion
 
         #region SaveChangesAsync(异步保存更改)
+
         /// <summary>
         /// 异步保存更改
         /// </summary>
         /// <param name="cancellationToken">取消令牌</param>
         /// <returns></returns>
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             SaveChangesBefore();
-            return base.SaveChangesAsync(cancellationToken);
+            var transactionActionManager = Ioc.Create<ITransactionActionManager>();
+            if (transactionActionManager.Count == 0)
+            {
+                return await base.SaveChangesAsync(cancellationToken);
+            }
+
+            return await TransactionCommit(transactionActionManager, cancellationToken);
+        }
+
+        /// <summary>
+        /// 手工创建事务提交
+        /// </summary>
+        /// <param name="transactionActionManager">事务操作管理器</param>
+        /// <param name="cancellationToken">取消令牌</param>
+        /// <returns></returns>
+        private async Task<int> TransactionCommit(ITransactionActionManager transactionActionManager,
+            CancellationToken cancellationToken)
+        {
+            using (var connection = Database.GetDbConnection())
+            {
+                if (connection.State == ConnectionState.Closed)
+                {
+                    await connection.OpenAsync(cancellationToken);
+                }
+
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        await transactionActionManager.CommitAsync(transaction);
+                        Database.UseTransaction(transaction);
+                        var result = await base.SaveChangesAsync(cancellationToken);
+                        transaction.Commit();
+                        return result;
+                    }
+                    catch (Exception e)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
         }
 
         #endregion
@@ -461,5 +439,94 @@ namespace Bing.Datas.EntityFramework.Core
         }
 
         #endregion
+
+        #region GetConnection(获取数据库连接)
+
+        /// <summary>
+        /// 获取数据库连接
+        /// </summary>
+        /// <returns></returns>
+        public IDbConnection GetConnection()
+        {
+            return Database.GetDbConnection();
+        }
+
+        #endregion
+
+        #region Matedata(获取元数据)
+
+        /// <summary>
+        /// 获取表名
+        /// </summary>
+        /// <param name="entity">实体类型</param>
+        /// <returns></returns>
+        public string GetTable(Type entity)
+        {
+            if (entity == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                var entityType = Model.FindEntityType(entity);
+                return entityType?.FindAnnotation("Relational:TableName")?.Value.SafeString();
+            }
+            catch
+            {
+                return entity.Name;
+            }
+        }
+
+        /// <summary>
+        /// 获取架构
+        /// </summary>
+        /// <param name="entity">实体类型</param>
+        /// <returns></returns>
+        public string GetSchema(Type entity)
+        {
+            if (entity == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                var entityType = Model.FindEntityType(entity);
+                return entityType?.FindAnnotation("Relational:Schema")?.Value.SafeString();
+            }
+            catch
+            {
+                return entity.Name;
+            }
+        }
+
+        /// <summary>
+        /// 获取列名
+        /// </summary>
+        /// <param name="entity">实体类型</param>
+        /// <param name="property">属性名</param>
+        /// <returns></returns>
+        public string GetColumn(Type entity, string property)
+        {
+            if (entity == null || string.IsNullOrWhiteSpace(property))
+            {
+                return null;
+            }
+
+            try
+            {
+                var entityType = Model.FindEntityType(entity);
+                var result = entityType?.GetProperty(property)?.FindAnnotation("Relational:ColumnName")?.Value.SafeString();
+                return string.IsNullOrWhiteSpace(result) ? property : result;
+            }
+            catch
+            {
+                return property;
+            }
+        }
+
+        #endregion
+
     }
 }

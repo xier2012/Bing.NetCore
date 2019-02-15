@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Bing.Configuration;
-using Bing.Datas.Configs;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Bing.Datas.EntityFramework.Core
@@ -12,7 +7,7 @@ namespace Bing.Datas.EntityFramework.Core
     /// 映射配置
     /// </summary>
     /// <typeparam name="TEntity">实体类型</typeparam>
-    public abstract class MapBase<TEntity>:IMap where TEntity:class
+    public abstract class MapBase<TEntity> : IMap where TEntity : class
     {
         /// <summary>
         /// 模型生成器
@@ -28,10 +23,7 @@ namespace Bing.Datas.EntityFramework.Core
             ModelBuilder = modelBuilder;
             var builder = modelBuilder.Entity<TEntity>();
             MapTable(builder);
-            if (DataConfig.EnabledValidateVersion)
-            {
-                MapVersion(builder);
-            }            
+            MapVersion(builder);
             MapProperties(builder);
             MapAssociations(builder);
         }
@@ -46,18 +38,24 @@ namespace Bing.Datas.EntityFramework.Core
         /// 映射乐观离线锁
         /// </summary>
         /// <param name="builder">实体类型生成器</param>
-        protected virtual void MapVersion(EntityTypeBuilder<TEntity> builder) { }
+        protected virtual void MapVersion(EntityTypeBuilder<TEntity> builder)
+        {
+        }
 
         /// <summary>
         /// 映射属性
         /// </summary>
         /// <param name="builder">实体类型生成器</param>
-        protected virtual void MapProperties(EntityTypeBuilder<TEntity> builder) { }
+        protected virtual void MapProperties(EntityTypeBuilder<TEntity> builder)
+        {
+        }
 
         /// <summary>
         /// 映射导航属性
         /// </summary>
         /// <param name="builder">实体类型生成器</param>
-        protected virtual void MapAssociations(EntityTypeBuilder<TEntity> builder) { }
+        protected virtual void MapAssociations(EntityTypeBuilder<TEntity> builder)
+        {
+        }
     }
 }

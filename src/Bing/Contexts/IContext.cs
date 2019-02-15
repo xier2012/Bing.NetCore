@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Bing.Dependency;
 
 namespace Bing.Contexts
 {
     /// <summary>
     /// 上下文
     /// </summary>
-    public interface IContext
+    public interface IContext: ISingletonDependency
     {
         /// <summary>
         /// 跟踪号

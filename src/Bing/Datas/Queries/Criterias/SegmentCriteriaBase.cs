@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using Bing.Domains.Repositories;
 using Bing.Utils;
 using Bing.Utils.Expressions;
+using Bing.Utils.Helpers;
 
 namespace Bing.Datas.Queries.Criterias
 {
@@ -61,17 +58,32 @@ namespace Bing.Datas.Queries.Criterias
         }
 
         /// <summary>
+        /// 获取属性类型
+        /// </summary>
+        /// <returns></returns>
+        protected Type GetPropertyType()
+        {
+            return Lambda.GetType(_propertyExpression);
+        }
+
+        /// <summary>
         /// 获取查询条件
         /// </summary>
         /// <returns></returns>
         public Expression<Func<TEntity, bool>> GetPredicate()
         {
+            _builder.Clear();
             Adjust(_min, _max);
             CreateLeftExpression();
             CreateRightExpression();
             return _builder.ToLambda();
         }
 
+        /// <summary>
+        /// 当最小值大于最大值时进行校正
+        /// </summary>
+        /// <param name="min">最小值</param>
+        /// <param name="max">最大值</param>
         private void Adjust(TValue? min, TValue? max)
         {
             if (IsMinGreaterMax(min, max) == false)
@@ -99,7 +111,7 @@ namespace Bing.Datas.Queries.Criterias
             {
                 return;
             }
-            _builder.Append(_propertyExpression, CreateLeftOperator(_boundary), GetMinValue());
+            _builder.Append(_propertyExpression, CreateLeftOperator(_boundary), GetMinValueExpression());
         }
 
         /// <summary>
@@ -124,9 +136,18 @@ namespace Bing.Datas.Queries.Criterias
         /// 获取最小值
         /// </summary>
         /// <returns></returns>
-        protected virtual TValue? GetMinValue()
+        protected TValue? GetMinValue()
         {
             return _min;
+        }
+
+        /// <summary>
+        /// 获取最小值表达式
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Expression GetMinValueExpression()
+        {
+            return Lambda.Constant(_min, _propertyExpression);
         }
 
         /// <summary>
@@ -138,7 +159,7 @@ namespace Bing.Datas.Queries.Criterias
             {
                 return;
             }
-            _builder.Append(_propertyExpression, CreateRightOperator(_boundary), GetMaxValue());
+            _builder.Append(_propertyExpression, CreateRightOperator(_boundary), GetMaxValueExpression());
         }
 
         /// <summary>
@@ -163,9 +184,18 @@ namespace Bing.Datas.Queries.Criterias
         /// 获取最大值
         /// </summary>
         /// <returns></returns>
-        protected virtual TValue? GetMaxValue()
+        protected TValue? GetMaxValue()
         {
             return _max;
+        }
+
+        /// <summary>
+        /// 获取最大值表达式
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Expression GetMaxValueExpression()
+        {
+            return Lambda.Constant(_max, _propertyExpression);
         }
     }
 }

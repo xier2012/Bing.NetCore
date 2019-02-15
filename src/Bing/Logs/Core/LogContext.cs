@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
-using System.Text;
 using Bing.Contexts;
 using Bing.Logs.Abstractions;
 using Bing.Logs.Internal;
@@ -23,9 +21,19 @@ namespace Bing.Logs.Core
         private LogContextInfo _info;
 
         /// <summary>
+        /// 序号
+        /// </summary>
+        private int _orderId;
+
+        /// <summary>
+        /// 上下文
+        /// </summary>
+        private IContext _context;
+
+        /// <summary>
         /// 跟踪号
         /// </summary>
-        public string TraceId => GetInfo().TraceId;
+        public string TraceId => $"{GetInfo().TraceId}-{++_orderId}";
 
         /// <summary>
         /// 计时器
@@ -55,18 +63,19 @@ namespace Bing.Logs.Core
         /// <summary>
         /// 上下文
         /// </summary>
-        public IContext Context { get; set; }
+        public IContext Context => _context ?? (_context = ContextFactory.Create());
         #endregion
 
         #region 构造函数
+
         /// <summary>
         /// 初始化一个<see cref="LogContext"/>类型的实例
         /// </summary>
-        /// <param name="context">上下文</param>
-        public LogContext(IContext context)
+        public LogContext()
         {
-            Context = context;
+            _orderId = 0;
         }
+
         #endregion
 
         /// <summary>
@@ -103,7 +112,7 @@ namespace Bing.Logs.Core
                 Ip = Web.IP,
                 Host = Dns.GetHostName(),
                 Browser = Web.Browser,
-                Url = Web.Url
+                Url = Web.Url,
             };
         }
 

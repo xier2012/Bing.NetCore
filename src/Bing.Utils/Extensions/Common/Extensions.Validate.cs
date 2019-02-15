@@ -12,7 +12,25 @@ namespace Bing.Utils.Extensions
     /// </summary>
     public static partial class Extensions
     {
+        #region CheckNull(检查对象是否为null)
+
+        /// <summary>
+        /// 检查对象是否为null，为null则抛出<see cref="ArgumentNullException"/>异常
+        /// </summary>
+        /// <param name="obj">对象</param>
+        /// <param name="parameterName">参数名</param>
+        public static void CheckNull(this object obj, string parameterName)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException(parameterName);
+            }
+        }
+
+        #endregion
+
         #region IsEmpty(是否为空)
+
         /// <summary>
         /// 判断 字符串 是否为空、null或空白字符串
         /// </summary>
@@ -28,9 +46,9 @@ namespace Bing.Utils.Extensions
         /// </summary>
         /// <param name="value">数据</param>
         /// <returns></returns>
-        public static bool IsEmpty(this Guid? value)
+        public static bool IsEmpty(this Guid value)
         {
-            return value == null || IsEmpty(value.Value);
+            return value == Guid.Empty;
         }
 
         /// <summary>
@@ -38,9 +56,9 @@ namespace Bing.Utils.Extensions
         /// </summary>
         /// <param name="value">数据</param>
         /// <returns></returns>
-        public static bool IsEmpty(this Guid value)
+        public static bool IsEmpty(this Guid? value)
         {
-            return value == Guid.Empty;
+            return value == null || IsEmpty(value.Value);
         }
 
         /// <summary>
@@ -63,16 +81,16 @@ namespace Bing.Utils.Extensions
             return sb == null || sb.Length == 0 || sb.ToString().IsEmpty();
         }
 
-        /// <summary>
-        /// 判断 泛型集合 是否为空
-        /// </summary>
-        /// <typeparam name="T">泛型对象</typeparam>
-        /// <param name="list">数据</param>
-        /// <returns></returns>
-        public static bool IsEmpty<T>(this ICollection<T> list)
-        {
-            return null == list || list.Count == 0;
-        }
+        ///// <summary>
+        ///// 判断 泛型集合 是否为空
+        ///// </summary>
+        ///// <typeparam name="T">泛型对象</typeparam>
+        ///// <param name="list">数据</param>
+        ///// <returns></returns>
+        //public static bool IsEmpty<T>(this ICollection<T> list)
+        //{
+        //    return null == list || list.Count == 0;
+        //}
 
         /// <summary>
         /// 判断 迭代集合 是否为空
@@ -107,26 +125,26 @@ namespace Bing.Utils.Extensions
             return null == dictionary || dictionary.Count == 0;
         }
 
-        /// <summary>
-        /// 判断 列表 是否为空
-        /// </summary>
-        /// <param name="list">列表</param>
-        /// <returns></returns>
-        public static bool IsEmpty(this IList list)
-        {
-            return null == list || list.Count == 0;
-        }
+        ///// <summary>
+        ///// 判断 列表 是否为空
+        ///// </summary>
+        ///// <param name="list">列表</param>
+        ///// <returns></returns>
+        //public static bool IsEmpty(this IList list)
+        //{
+        //    return null == list || list.Count == 0;
+        //}
 
-        /// <summary>
-        /// 判断 泛型列表 是否为空
-        /// </summary>
-        /// <typeparam name="T">泛型对象</typeparam>
-        /// <param name="list">列表</param>
-        /// <returns></returns>
-        public static bool IsEmpty<T>(this IList<T> list)
-        {
-            return null == list || list.Count == 0;
-        }
+        ///// <summary>
+        ///// 判断 泛型列表 是否为空
+        ///// </summary>
+        ///// <typeparam name="T">泛型对象</typeparam>
+        ///// <param name="list">列表</param>
+        ///// <returns></returns>
+        //public static bool IsEmpty<T>(this IList<T> list)
+        //{
+        //    return null == list || list.Count == 0;
+        //}
 
         #endregion
 

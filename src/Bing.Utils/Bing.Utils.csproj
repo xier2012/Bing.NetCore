@@ -1,19 +1,37 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="../../build/version.props"></Import>
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Description>Bing.Utils是Bing应用框架的核心帮助类库。
+Bing是一个.net core平台下的应用框架，旨在于提升小型团队的开发能力，由常用公共操作类、架构基类、第三方组件封装、第三方业务接口封装等组成。</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\output\release\</OutputPath>
+    <DocumentationFile>..\..\output\release\netstandard2.0\Bing.Utils.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\output\release\</OutputPath>
+    <DocumentationFile>..\..\output\release\netstandard2.0\Bing.Utils.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.1.1" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.1.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <None Remove="Bing.Utils.csproj.DotSettings" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
+    <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +52,12 @@
   <ItemGroup>
     <Folder Include="Extensions\Xml\" />
     <Folder Include="Extensions\Datas\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Medias/Images/ImageUtil.*.cs">
+      <DependentUpon>ImageUtil.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

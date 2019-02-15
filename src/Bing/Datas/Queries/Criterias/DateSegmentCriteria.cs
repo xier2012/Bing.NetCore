@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using Bing.Utils.Extensions;
 
 namespace Bing.Datas.Queries.Criterias
@@ -39,21 +35,19 @@ namespace Bing.Datas.Queries.Criterias
         }
 
         /// <summary>
-        /// 获取最小值
+        /// 获取最小值表达式
         /// </summary>
-        /// <returns></returns>
-        protected override DateTime? GetMinValue()
+        protected override Expression GetMinValueExpression()
         {
-            return base.GetMinValue().SafeValue().Date;
+            return ValueExpressionHelper.CreateDateTimeExpression(GetMinValue().SafeValue().Date, GetPropertyType());
         }
 
         /// <summary>
-        /// 获取最大值
+        /// 获取最大值表达式
         /// </summary>
-        /// <returns></returns>
-        protected override DateTime? GetMaxValue()
+        protected override Expression GetMaxValueExpression()
         {
-            return base.GetMaxValue().SafeValue().Date.AddDays(1);
+            return ValueExpressionHelper.CreateDateTimeExpression(GetMaxValue().SafeValue().Date.AddDays(1), GetPropertyType());
         }
     }
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Bing.Logs.Abstractions
+﻿namespace Bing.Logs.Abstractions
 {
     /// <summary>
     /// 日志提供程序
@@ -23,6 +19,11 @@ namespace Bing.Logs.Abstractions
         /// 跟踪级别是否启用
         /// </summary>
         bool IsTraceEnabled { get; }
+
+        /// <summary>
+        /// 是否分布式日志
+        /// </summary>
+        bool IsDistributedLog { get; }
 
         /// <summary>
         /// 写日志

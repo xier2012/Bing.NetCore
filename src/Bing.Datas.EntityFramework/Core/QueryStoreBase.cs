@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Bing.Datas.EntityFramework.Extensions;
@@ -13,6 +13,8 @@ using Bing.Domains.Repositories;
 using Bing.Utils.Extensions;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
+using Bing.Datas.Sql;
+using Bing.Helpers;
 
 namespace Bing.Datas.EntityFramework.Core
 {
@@ -38,7 +40,7 @@ namespace Bing.Datas.EntityFramework.Core
     /// <typeparam name="TEntity">对象类型</typeparam>
     /// <typeparam name="TKey">对象标识类型</typeparam>
     public abstract class QueryStoreBase<TEntity,TKey>:IQueryStore<TEntity,TKey>where TEntity:class,IKey<TKey>
-    {
+    {        
         #region 属性
 
         /// <summary>
@@ -50,6 +52,21 @@ namespace Bing.Datas.EntityFramework.Core
         /// 实体集
         /// </summary>
         protected DbSet<TEntity> Set => UnitOfWork.Set<TEntity>();
+
+        /// <summary>
+        /// Sql查询对象
+        /// </summary>
+        private ISqlQuery _sqlQuery;
+
+        /// <summary>
+        /// Sql查询对象
+        /// </summary>
+        protected virtual ISqlQuery Sql => _sqlQuery ?? (_sqlQuery = Ioc.Create<ISqlQuery>());
+
+        /// <summary>
+        /// 数据库连接
+        /// </summary>
+        protected IDbConnection Connection => UnitOfWork.Database.GetDbConnection();
 
         #endregion
 
@@ -109,7 +126,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="id">标识</param>
         /// <returns></returns>
-        public TEntity Find(object id)
+        public virtual TEntity Find(object id)
         {
             if (id.SafeString().IsEmpty())
             {
@@ -125,7 +142,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// <param name="id">标识</param>
         /// <param name="cancellationToken">取消令牌</param>
         /// <returns></returns>
-        public async Task<TEntity> FindAsync(object id, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<TEntity> FindAsync(object id, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (id.SafeString().IsEmpty())
             {
@@ -140,7 +157,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="ids">标识列表</param>
         /// <returns></returns>
-        public List<TEntity> FindByIds(params TKey[] ids)
+        public virtual List<TEntity> FindByIds(params TKey[] ids)
         {
             return FindByIds((IEnumerable<TKey>) ids);
         }
@@ -150,7 +167,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="ids">标识列表</param>
         /// <returns></returns>
-        public List<TEntity> FindByIds(IEnumerable<TKey> ids)
+        public virtual List<TEntity> FindByIds(IEnumerable<TKey> ids)
         {
             if(ids==null)
             {
@@ -165,7 +182,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="ids">逗号分隔的标识列表，范例："1,2"</param>
         /// <returns></returns>
-        public List<TEntity> FindByIds(string ids)
+        public virtual List<TEntity> FindByIds(string ids)
         {
             var idList = Bing.Utils.Helpers.Conv.ToList<TKey>(ids);
             return FindByIds(idList);
@@ -176,7 +193,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="ids">标识列表</param>
         /// <returns></returns>
-        public async Task<List<TEntity>> FindByIdsAsync(params TKey[] ids)
+        public virtual async Task<List<TEntity>> FindByIdsAsync(params TKey[] ids)
         {
             return await FindByIdsAsync((IEnumerable<TKey>) ids);
         }
@@ -187,7 +204,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// <param name="ids">标识列表</param>
         /// <param name="cancellationToken">取消令牌</param>
         /// <returns></returns>
-        public async Task<List<TEntity>> FindByIdsAsync(IEnumerable<TKey> ids, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<List<TEntity>> FindByIdsAsync(IEnumerable<TKey> ids, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (ids == null)
             {
@@ -202,7 +219,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="ids">逗号分隔的标识列表，范例："1,2"</param>
         /// <returns></returns>
-        public async Task<List<TEntity>> FindByIdsAsync(string ids)
+        public virtual async Task<List<TEntity>> FindByIdsAsync(string ids)
         {
             var idList = Bing.Utils.Helpers.Conv.ToList<TKey>(ids);
             return await FindByIdsAsync(idList);
@@ -213,7 +230,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="id">标识</param>
         /// <returns></returns>
-        public TEntity FindByIdNoTracking(TKey id)
+        public virtual TEntity FindByIdNoTracking(TKey id)
         {
             var entities = FindByIdsNoTracking(id);
             if (entities == null || entities.Count == 0)
@@ -230,7 +247,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// <param name="id">标识</param>
         /// <param name="cancellationToken">取消令牌</param>
         /// <returns></returns>
-        public async Task<TEntity> FindByIdNoTrackingAsync(TKey id, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<TEntity> FindByIdNoTrackingAsync(TKey id, CancellationToken cancellationToken = default(CancellationToken))
         {
             var entities = await FindByIdsNoTrackingAsync(id);
             if (entities == null || entities.Count == 0)
@@ -246,7 +263,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="ids">标识列表</param>
         /// <returns></returns>
-        public List<TEntity> FindByIdsNoTracking(params TKey[] ids)
+        public virtual List<TEntity> FindByIdsNoTracking(params TKey[] ids)
         {
             return FindByIdsNoTracking((IEnumerable<TKey>) ids);
         }
@@ -256,7 +273,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="ids">标识列表</param>
         /// <returns></returns>
-        public List<TEntity> FindByIdsNoTracking(IEnumerable<TKey> ids)
+        public virtual List<TEntity> FindByIdsNoTracking(IEnumerable<TKey> ids)
         {
             if (ids == null)
             {
@@ -271,7 +288,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="ids">逗号分隔的标识列表，范例："1,2"</param>
         /// <returns></returns>
-        public List<TEntity> FindByIdsNoTracking(string ids)
+        public virtual List<TEntity> FindByIdsNoTracking(string ids)
         {
             var idList = Bing.Utils.Helpers.Conv.ToList<TKey>(ids);
             return FindByIdsNoTracking(idList);
@@ -282,7 +299,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="ids">标识列表</param>
         /// <returns></returns>
-        public async Task<List<TEntity>> FindByIdsNoTrackingAsync(params TKey[] ids)
+        public virtual async Task<List<TEntity>> FindByIdsNoTrackingAsync(params TKey[] ids)
         {
             return await FindByIdsNoTrackingAsync((IEnumerable<TKey>) ids);
         }
@@ -293,7 +310,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// <param name="ids">标识列表</param>
         /// <param name="cancellationToken">取消令牌</param>
         /// <returns></returns>
-        public async Task<List<TEntity>> FindByIdsNoTrackingAsync(IEnumerable<TKey> ids, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<List<TEntity>> FindByIdsNoTrackingAsync(IEnumerable<TKey> ids, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (ids == null)
             {
@@ -308,7 +325,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="ids">逗号分隔的标识列表，范例："1,2"</param>
         /// <returns></returns>
-        public async Task<List<TEntity>> FindByIdsNoTrackingAsync(string ids)
+        public virtual async Task<List<TEntity>> FindByIdsNoTrackingAsync(string ids)
         {
             var idList = Bing.Utils.Helpers.Conv.ToList<TKey>(ids);
             return await FindByIdsNoTrackingAsync(idList);
@@ -319,7 +336,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="predicate">查询条件</param>
         /// <returns></returns>
-        public TEntity Single(Expression<Func<TEntity, bool>> predicate)
+        public virtual TEntity Single(Expression<Func<TEntity, bool>> predicate)
         {
             return Set.FirstOrDefault(predicate);
         }
@@ -328,10 +345,11 @@ namespace Bing.Datas.EntityFramework.Core
         /// 查找单个实体
         /// </summary>
         /// <param name="predicate">查询条件</param>
+        /// <param name="cancellationToken">取消令牌</param>
         /// <returns></returns>
-        public async Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate)
+        public virtual async Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return await Set.FirstOrDefaultAsync(predicate);
+            return await Set.FirstOrDefaultAsync(predicate, cancellationToken);
         }
 
         /// <summary>
@@ -339,7 +357,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="predicate">查询条件</param>
         /// <returns></returns>
-        public List<TEntity> FindAll(Expression<Func<TEntity, bool>> predicate = null)
+        public virtual List<TEntity> FindAll(Expression<Func<TEntity, bool>> predicate = null)
         {
             if (predicate == null)
             {
@@ -354,7 +372,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="predicate">查询条件</param>
         /// <returns></returns>
-        public async Task<List<TEntity>> FindAllAsync(Expression<Func<TEntity, bool>> predicate = null)
+        public virtual async Task<List<TEntity>> FindAllAsync(Expression<Func<TEntity, bool>> predicate = null)
         {
             if (predicate == null)
             {
@@ -369,7 +387,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="predicate">查询条件</param>
         /// <returns></returns>
-        public List<TEntity> FindAllNoTracking(Expression<Func<TEntity, bool>> predicate = null)
+        public virtual List<TEntity> FindAllNoTracking(Expression<Func<TEntity, bool>> predicate = null)
         {
             if (predicate == null)
             {
@@ -384,7 +402,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="predicate">查询条件</param>
         /// <returns></returns>
-        public async Task<List<TEntity>> FindAllNoTrackingAsync(Expression<Func<TEntity, bool>> predicate = null)
+        public virtual async Task<List<TEntity>> FindAllNoTrackingAsync(Expression<Func<TEntity, bool>> predicate = null)
         {
             if (predicate == null)
             {
@@ -399,7 +417,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="ids">标识列表</param>
         /// <returns></returns>
-        public bool Exists(params TKey[] ids)
+        public virtual bool Exists(params TKey[] ids)
         {
             if (ids == null)
             {
@@ -414,7 +432,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="ids">标识列表</param>
         /// <returns></returns>
-        public async Task<bool> ExistsAsync(params TKey[] ids)
+        public virtual async Task<bool> ExistsAsync(params TKey[] ids)
         {
             if (ids == null)
             {
@@ -429,7 +447,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="predicate">查询条件</param>
         /// <returns></returns>
-        public bool Exists(Expression<Func<TEntity, bool>> predicate)
+        public virtual bool Exists(Expression<Func<TEntity, bool>> predicate)
         {
             if (predicate == null)
             {
@@ -444,7 +462,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="predicate">查询条件</param>
         /// <returns></returns>
-        public async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate)
+        public virtual async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate)
         {
             if (predicate == null)
             {
@@ -459,11 +477,11 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="predicate">查询条件</param>
         /// <returns></returns>
-        public int Count(Expression<Func<TEntity, bool>> predicate = null)
+        public virtual int Count(Expression<Func<TEntity, bool>> predicate = null)
         {
             if (predicate == null)
             {
-                return Set.Count();
+                return Queryable.Count(Set);
             }
 
             return Set.Count(predicate);
@@ -474,7 +492,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="predicate">查询条件</param>
         /// <returns></returns>
-        public async Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate = null)
+        public virtual async Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate = null)
         {
             if (predicate == null)
             {
@@ -489,7 +507,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="query">查询对象</param>
         /// <returns></returns>
-        public List<TEntity> Query(IQueryBase<TEntity> query)
+        public virtual List<TEntity> Query(IQueryBase<TEntity> query)
         {
             return Query(Set, query).ToList();
         }
@@ -509,7 +527,7 @@ namespace Bing.Datas.EntityFramework.Core
                 return queryable;
             }
 
-            return queryable.OrderBy(order);
+            return DynamicQueryableExtensions.OrderBy(queryable, order);
         }
 
         /// <summary>
@@ -517,7 +535,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="query">查询对象</param>
         /// <returns></returns>
-        public List<TEntity> QueryAsNoTracking(IQueryBase<TEntity> query)
+        public virtual List<TEntity> QueryAsNoTracking(IQueryBase<TEntity> query)
         {
             return Query(FindAsNoTracking(), query).ToList();
         }
@@ -527,7 +545,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="query">查询对象</param>
         /// <returns></returns>
-        public PagerList<TEntity> PagerQuery(IQueryBase<TEntity> query)
+        public virtual PagerList<TEntity> PagerQuery(IQueryBase<TEntity> query)
         {
             return Set.Where(query).ToPagerList(query.GetPager());
         }
@@ -537,7 +555,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="query">查询对象</param>
         /// <returns></returns>
-        public PagerList<TEntity> PagerQueryAsNoTracking(IQueryBase<TEntity> query)
+        public virtual PagerList<TEntity> PagerQueryAsNoTracking(IQueryBase<TEntity> query)
         {
             return FindAsNoTracking().Where(query).ToPagerList(query.GetPager());
         }
@@ -547,7 +565,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="query">查询对象</param>
         /// <returns></returns>
-        public async Task<List<TEntity>> QueryAsync(IQueryBase<TEntity> query)
+        public virtual async Task<List<TEntity>> QueryAsync(IQueryBase<TEntity> query)
         {
             return await Query(Set, query).ToListAsync();
         }
@@ -557,7 +575,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="query">查询对象</param>
         /// <returns></returns>
-        public async Task<List<TEntity>> QueryAsNoTrackingAsync(IQueryBase<TEntity> query)
+        public virtual async Task<List<TEntity>> QueryAsNoTrackingAsync(IQueryBase<TEntity> query)
         {
             return await Query(FindAsNoTracking(), query).ToListAsync();
         }
@@ -567,7 +585,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="query">查询对象</param>
         /// <returns></returns>
-        public async Task<PagerList<TEntity>> PagerQueryAsync(IQueryBase<TEntity> query)
+        public virtual async Task<PagerList<TEntity>> PagerQueryAsync(IQueryBase<TEntity> query)
         {
             return await Set.Where(query).ToPagerListAsync(query.GetPager());
         }
@@ -577,7 +595,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// </summary>
         /// <param name="query">查询对象</param>
         /// <returns></returns>
-        public async Task<PagerList<TEntity>> PagerQueryAsNoTrackingAsync(IQueryBase<TEntity> query)
+        public virtual async Task<PagerList<TEntity>> PagerQueryAsNoTrackingAsync(IQueryBase<TEntity> query)
         {
             return await FindAsNoTracking().Where(query).ToPagerListAsync(query.GetPager());
         }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using Bing.Exceptions;
 
@@ -73,6 +72,6 @@ namespace Bing.Logs.Abstractions
         /// <summary>
         /// 异常消息
         /// </summary>
-        Warning Exception { get; set; }
+        Exception Exception { get; set; }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Bing.Datas.Stores;
@@ -97,7 +96,7 @@ namespace Bing.Datas.EntityFramework.Core
         /// <param name="id">标识</param>
         /// <param name="cancellationToken">取消令牌</param>
         /// <returns></returns>
-        public async Task<TEntity> FindByIdNoTrackingAsync(TKey id, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<TEntity> FindByIdNoTrackingAsync(TKey id, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ToEntity(await _store.FindByIdNoTrackingAsync(id, cancellationToken));
         }

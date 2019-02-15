@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bing.Datas.Queries.Criterias
 {
@@ -35,6 +31,22 @@ namespace Bing.Datas.Queries.Criterias
         protected override bool IsMinGreaterMax(DateTime? min, DateTime? max)
         {
             return min > max;
+        }
+
+        /// <summary>
+        /// 获取最小值表达式
+        /// </summary>
+        protected override Expression GetMinValueExpression()
+        {
+            return ValueExpressionHelper.CreateDateTimeExpression(GetMinValue(), GetPropertyType());
+        }
+
+        /// <summary>
+        /// 获取最大值表达式
+        /// </summary>
+        protected override Expression GetMaxValueExpression()
+        {
+            return ValueExpressionHelper.CreateDateTimeExpression(GetMaxValue(), GetPropertyType());
         }
     }
 }

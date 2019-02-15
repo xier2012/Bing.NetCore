@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Bing.Configuration;
+using Bing.Configurations;
 using Bing.Logs.Abstractions;
 using Bing.Logs.Contents;
 using Bing.Utils.Extensions;
@@ -42,7 +42,12 @@ namespace Bing.Logs.Exceptionless
         /// <summary>
         /// 跟踪级别是否启用
         /// </summary>
-        public bool IsTraceEnabled { get; }        
+        public bool IsTraceEnabled { get; }
+
+        /// <summary>
+        /// 是否分布式日志
+        /// </summary>
+        public bool IsDistributedLog => true;
 
         #endregion
 
@@ -92,7 +97,7 @@ namespace Bing.Logs.Exceptionless
         {
             if (content.Exception != null)
             {
-                return _client.CreateException(content.Exception);
+                return _client.CreateException(content.Exception).AddTags(level.Description());
             }
             return _client.CreateLog(GetMessage(content), ConvertTo(level));
         }
@@ -175,7 +180,7 @@ namespace Bing.Logs.Exceptionless
         /// <param name="content">日志内容</param>
         private void SetReferenceId(EventBuilder builder, ILogContent content)
         {
-            builder.SetReferenceId(content.TraceId);
+            builder.SetReferenceId($"{content.TraceId}");
         }
 
         /// <summary>

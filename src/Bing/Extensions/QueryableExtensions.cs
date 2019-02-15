@@ -5,7 +5,6 @@ using Bing.Datas.Queries;
 using Bing.Datas.Queries.Criterias;
 using Bing.Datas.Queries.Internal;
 using Bing.Domains.Repositories;
-using System.Linq.Dynamic.Core;
 
 // ReSharper disable once CheckNamespace
 namespace Bing
@@ -35,17 +34,19 @@ namespace Bing
                 throw new ArgumentNullException(nameof(pager));
             }
 
-            if (string.IsNullOrWhiteSpace(pager.Order))
-            {
-                pager.Order = "Id";
-            }
-
+            Helper.InitOrder(query, pager);
             if (pager.TotalCount <= 0)
             {
                 pager.TotalCount = query.Count();
             }
 
-            return query.OrderBy(pager.Order).Skip(pager.GetSkipCount()).Take(pager.PageSize);
+            var orderedQueryable = Helper.GetOrderedQueryable(query, pager);
+            if (orderedQueryable == null)
+            {
+                throw new ArgumentException("必须设置排序字段");
+            }
+
+            return orderedQueryable.Skip(pager.GetSkipCount()).Take(pager.PageSize);
         }
 
         #endregion

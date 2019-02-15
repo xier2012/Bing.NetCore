@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Bing.Domains.Entities.Tenants
+﻿namespace Bing.Domains.Entities.Tenants
 {
     /// <summary>
     /// 租户
@@ -13,5 +9,17 @@ namespace Bing.Domains.Entities.Tenants
         /// 租户编号
         /// </summary>
         string TenantId { get; set; }
+    }
+
+    /// <summary>
+    /// 租户
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    public interface ITenant<TKey>
+    {
+        /// <summary>
+        /// 租户标识
+        /// </summary>
+        TKey TenantId { get; set; }
     }
 }

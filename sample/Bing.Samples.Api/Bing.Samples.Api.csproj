@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -13,16 +13,33 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.1.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="2.5.0" />
+    <PackageReference Include="Bing.Extensions.Swashbuckle" Version="0.0.1-preview-20190110-1" />
+    <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.7.0" />
+    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.2.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Bing.Biz.Payments\Bing.Biz.Payments.csproj" />
+    <ProjectReference Include="..\..\src\Bing.Logs.Exceptionless\Bing.Logs.Exceptionless.csproj" />
+    <ProjectReference Include="..\..\src\Bing.Logs.Log4Net\Bing.Logs.Log4Net.csproj" />
+    <ProjectReference Include="..\..\src\Bing.Logs.NLog\Bing.Logs.NLog.csproj" />
+    <ProjectReference Include="..\..\src\Bing.Logs.Serilog\Bing.Logs.Serilog.csproj" />
     <ProjectReference Include="..\..\src\Bing.Webs\Bing.Webs.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="log4net.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="nlog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

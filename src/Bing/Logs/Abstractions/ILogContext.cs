@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Diagnostics;
+using Bing.Aspects;
 
 namespace Bing.Logs.Abstractions
 {
     /// <summary>
     /// 日志上下文
     /// </summary>
+    [Ignore]
     public interface ILogContext
     {
         /// <summary>

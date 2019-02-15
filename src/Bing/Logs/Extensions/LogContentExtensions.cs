@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using Bing.Logs.Abstractions;
 using Bing.Utils.Extensions;
 
@@ -23,7 +21,6 @@ namespace Bing.Logs.Extensions
             {
                 return;
             }
-            result.Append("   ");
             result.Append(value);
         }
 

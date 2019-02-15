@@ -1,13 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using Bing.Utils.Extensions;
+using Bing.Utils.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Http.Internal;
 
 namespace Bing.Utils.Helpers
 {
@@ -18,32 +23,109 @@ namespace Bing.Utils.Helpers
     {
         #region 属性
 
+        #region HttpContextAccessor(Http上下文访问器)
+
         /// <summary>
         /// Http上下文访问器
         /// </summary>
         public static IHttpContextAccessor HttpContextAccessor { get; set; }
+
+        #endregion
+
+        #region HttpContext(当前Http上下文)
 
         /// <summary>
         /// 当前Http上下文
         /// </summary>
         public static HttpContext HttpContext => HttpContextAccessor?.HttpContext;
 
+        #endregion
+
+        #region Environment(宿主环境)
+
         /// <summary>
         /// 宿主环境
         /// </summary>
         public static IHostingEnvironment Environment { get; set; }
+
+        #endregion
+
+        #region Request(当前Http请求)
 
         /// <summary>
         /// 当前Http请求
         /// </summary>
         public static HttpRequest Request => HttpContext?.Request;
 
+        #endregion
+
+        #region Response(当前Http响应)
+
         /// <summary>
         /// 当前Http响应
         /// </summary>
         public static HttpResponse Response => HttpContext?.Response;
 
-        #endregion        
+        #endregion
+
+        #region LocalIpAddress(本地IP)
+
+        /// <summary>
+        /// 本地IP
+        /// </summary>
+        public static string LocalIpAddress
+        {
+            get
+            {
+                try
+                {
+                    var ipAddress = HttpContext.Connection.LocalIpAddress;
+                    return IPAddress.IsLoopback(ipAddress)
+                        ? IPAddress.Loopback.ToString()
+                        : ipAddress.MapToIPv4().ToString();
+                }
+                catch
+                {
+                    return IPAddress.Loopback.ToString();
+                }
+            }
+        }
+
+        #endregion
+
+        #region RequestType(请求类型)
+
+        /// <summary>
+        /// 请求类型
+        /// </summary>
+        public static string RequestType => HttpContext?.Request?.Method;
+
+        #endregion
+
+        #region Form(表单)
+
+        /// <summary>
+        /// Form表单
+        /// </summary>
+        public static IFormCollection Form => HttpContext?.Request?.Form;
+
+        #endregion
+
+        #region Body(请求正文)
+
+        /// <summary>
+        /// 请求正文
+        /// </summary>
+        public static string Body
+        {
+            get
+            {
+                Request.EnableRewind();
+                return FileUtil.ToString(Request.Body, isCloseStream: false);
+            }
+        }
+
+        #endregion
 
         #region Url(请求地址)
 
@@ -57,6 +139,28 @@ namespace Bing.Utils.Helpers
         #region IP(客户端IP地址)
 
         /// <summary>
+        /// IP地址
+        /// </summary>
+        private static string _ip;
+
+        /// <summary>
+        /// 设置IP地址
+        /// </summary>
+        /// <param name="ip">IP地址</param>
+        public static void SetIp(string ip)
+        {
+            _ip = ip;
+        }
+
+        /// <summary>
+        /// 重置IP地址
+        /// </summary>
+        public static void ResetIp()
+        {
+            _ip = null;
+        }
+
+        /// <summary>
         /// 客户端IP地址
         /// </summary>
         // ReSharper disable once InconsistentNaming
@@ -64,13 +168,16 @@ namespace Bing.Utils.Helpers
         {
             get
             {
-                var list = new[] {"127.0.0.1", "::1"};
+                if (string.IsNullOrWhiteSpace(_ip) == false)
+                {
+                    return _ip;
+                }
+                var list = new[] { "127.0.0.1", "::1" };
                 var result = HttpContext?.Connection?.RemoteIpAddress.SafeString();
                 if (string.IsNullOrWhiteSpace(result) || list.Contains(result))
                 {
                     result = GetLanIP();
                 }
-
                 return result;
             }
         }
@@ -89,7 +196,6 @@ namespace Bing.Utils.Helpers
                     return hostAddress.ToString();
                 }
             }
-
             return string.Empty;
         }
 
@@ -113,13 +219,11 @@ namespace Bing.Utils.Helpers
             {
                 return Dns.GetHostName();
             }
-
             var result = Dns.GetHostEntry(IPAddress.Parse(address)).HostName;
             if (result == "localhost.localdomain")
             {
                 result = Dns.GetHostName();
             }
-
             return result;
         }
 
@@ -159,6 +263,61 @@ namespace Bing.Utils.Helpers
         /// Web根路径，即wwwroot
         /// </summary>
         public static string WebRootPath => Environment?.WebRootPath;
+
+        #endregion
+
+        #region ContentType(内容类型)
+
+        /// <summary>
+        /// 内容类型
+        /// </summary>
+        public static string ContentType => HttpContext?.Request?.ContentType;
+
+        #endregion
+
+        #region QueryString(参数)
+
+        /// <summary>
+        /// 参数
+        /// </summary>
+        public static string QueryString => HttpContext?.Request?.QueryString.ToString();
+
+        #endregion
+
+        #endregion
+
+        #region 构造函数
+
+        /// <summary>
+        /// 静态构造函数
+        /// </summary>
+        static Web()
+        {
+            ServicePointManager.DefaultConnectionLimit = 200;
+        }
+
+        #endregion
+
+        #region Client(Web客户端)
+
+        /// <summary>
+        /// Web客户端，用于发送Http请求
+        /// </summary>
+        /// <returns></returns>
+        public static Bing.Utils.Webs.Clients.WebClient Client()
+        {
+            return new Bing.Utils.Webs.Clients.WebClient();
+        }
+
+        /// <summary>
+        /// Web客户端，用于发送Http请求
+        /// </summary>
+        /// <typeparam name="TResult">返回结果类型</typeparam>
+        /// <returns></returns>
+        public static Bing.Utils.Webs.Clients.WebClient<TResult> Client<TResult>() where TResult : class
+        {
+            return new Bing.Utils.Webs.Clients.WebClient<TResult>();
+        }
 
         #endregion
 
@@ -292,6 +451,68 @@ namespace Bing.Utils.Helpers
         public static string UrlDecode(string url, Encoding encoding)
         {
             return HttpUtility.UrlDecode(url, encoding);
+        }
+
+        #endregion
+
+        #region Redirect(跳转到指定链接)
+
+        /// <summary>
+        /// 跳转到指定链接
+        /// </summary>
+        /// <param name="url">链接</param>
+        public static void Redirect(string url) => Response?.Redirect(url);
+
+        #endregion
+
+        #region Write(输出内容)
+
+        /// <summary>
+        /// 输出内容
+        /// </summary>
+        /// <param name="text">内容</param>
+        public static void Write(string text)
+        {
+            Response.ContentType = "text/plain;charset=utf-8";
+            Task.Run(async () => { await Response.WriteAsync(text); }).GetAwaiter().GetResult();
+        }
+
+        #endregion
+
+        #region Write(输出文件)
+
+        /// <summary>
+        /// 输出文件
+        /// </summary>
+        /// <param name="stream">文件流</param>
+        public static void Write(FileStream stream)
+        {
+            long size = stream.Length;
+            byte[] buffer = new byte[size];
+            stream.Read(buffer, 0, (int)size);
+            stream.Dispose();
+            File.Delete(stream.Name);
+
+            Response.ContentType = "application/octet-stream";
+            Response.Headers.Add("Content-Disposition", "attachment;filename=" + WebUtility.UrlEncode(Path.GetFileName(stream.Name)));
+            Response.Headers.Add("Content-Length", size.ToString());
+
+            Task.Run(async () => { await Response.Body.WriteAsync(buffer, 0, (int) size); }).GetAwaiter().GetResult();
+            Response.Body.Close();
+        }
+
+        #endregion
+
+        #region GetBodyAsync(获取请求正文)
+
+        /// <summary>
+        /// 获取请求正文
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<string> GetBodyAsync()
+        {
+            Request.EnableRewind();
+            return await FileUtil.ToStringAsync(Request.Body, isCloseStream: false);
         }
 
         #endregion

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Diagnostics;
 using Bing.Logs.Abstractions;
 
 namespace Bing.Logs.Core
@@ -44,6 +41,6 @@ namespace Bing.Logs.Core
         /// <summary>
         /// 空日志上下文实例
         /// </summary>
-        public static readonly ILogContext Instance=new NullLogContext();
+        public static readonly ILogContext Instance = new NullLogContext();
     }
 }

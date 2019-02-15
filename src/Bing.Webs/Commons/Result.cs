@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Bing.Utils.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace Bing.Webs.Commons
 {
@@ -16,22 +13,22 @@ namespace Bing.Webs.Commons
         /// <summary>
         /// 状态码
         /// </summary>
-        private readonly int _code;
+        public int Code { get; }
 
         /// <summary>
         /// 消息
         /// </summary>
-        private readonly string _message;
+        public string Message { get; }
 
         /// <summary>
         /// 数据
         /// </summary>
-        private readonly dynamic _data;
+        public dynamic Data { get; }
 
         /// <summary>
         /// 操作时间
         /// </summary>
-        private readonly DateTime _operationTime;        
+        public DateTime OperationTime { get; }
 
         /// <summary>
         /// 初始化一个<see cref="Result"/>类型的实例
@@ -41,10 +38,10 @@ namespace Bing.Webs.Commons
         /// <param name="data">数据</param>
         public Result(int code, string message, dynamic data = null):base(null)
         {
-            _code = code;
-            _message = message;
-            _data = data;
-            _operationTime = DateTime.Now;
+            Code = code;
+            Message = message;
+            Data = data;
+            OperationTime = DateTime.Now;
         }
 
         /// <summary>
@@ -55,10 +52,10 @@ namespace Bing.Webs.Commons
         /// <param name="data">数据</param>
         public Result(StateCode code, string message, dynamic data = null) : base(null)
         {
-            _code = code.Value();
-            _message = message;
-            _data = data;
-            _operationTime=DateTime.Now;
+            Code = code.Value();
+            Message = message;
+            Data = data;
+            OperationTime = DateTime.Now;
         }
 
         /// <summary>
@@ -66,23 +63,23 @@ namespace Bing.Webs.Commons
         /// </summary>
         public override Task ExecuteResultAsync(ActionContext context)
         {
-            if (_data != null)
+            if (Data != null)
             {
                 this.Value = new
                 {
-                    Code = _code,
-                    Message = _message,
-                    OperationTime = _operationTime,
-                    Data = _data
+                    Code = Code,
+                    Message = Message,
+                    OperationTime = OperationTime,
+                    Data = Data
                 };
             }
             else
             {
                 this.Value = new
                 {
-                    Code = _code,
-                    Message = _message,
-                    OperationTime = _operationTime,
+                    Code = Code,
+                    Message = Message,
+                    OperationTime = OperationTime,
                 };
             }            
             return base.ExecuteResultAsync(context);

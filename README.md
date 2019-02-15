@@ -3,6 +3,38 @@
 
 Bing是基于 .net core 2.0 的框架，旨在提升团队的开发输出能力，由常用公共操作类（工具类、帮助类）、分层架构基类，第三方组件封装，第三方业务接口封装等组成。
 
+## Nuget Packages
+Bing 框架Nuget包分布
+
+|Nuget|版本号|说明|
+|---|---|---|
+|Bing.Utils|[![NuGet Badge](https://buildstats.info/nuget/Bing.Utils?includePreReleases=true)](https://www.nuget.org/packages/Bing.Utils)|
+|Bing.Core|[![NuGet Badge](https://buildstats.info/nuget/Bing.Core?includePreReleases=true)](https://www.nuget.org/packages/Bing.Core)|
+|Bing.Security|[![NuGet Badge](https://buildstats.info/nuget/Bing.Security?includePreReleases=true)](https://www.nuget.org/packages/Bing.Security)|
+|Bing.Logs|[![NuGet Badge](https://buildstats.info/nuget/Bing.Logs?includePreReleases=true)](https://www.nuget.org/packages/Bing.Logs)|
+|Bing.Logs.Exceptionless|[![NuGet Badge](https://buildstats.info/nuget/Bing.Logs.Exceptionless?includePreReleases=true)](https://www.nuget.org/packages/Bing.Logs.Exceptionless)|
+|Bing.Logs.Log4Net|[![NuGet Badge](https://buildstats.info/nuget/Bing.Logs.Log4Net?includePreReleases=true)](https://www.nuget.org/packages/Bing.Logs.Log4Net)|
+|Bing.Logs.NLog|[![NuGet Badge](https://buildstats.info/nuget/Bing.Logs.NLog?includePreReleases=true)](https://www.nuget.org/packages/Bing.Logs.NLog)|
+|Bing.Logs.Serilog|[![NuGet Badge](https://buildstats.info/nuget/Bing.Logs.Serilog?includePreReleases=true)](https://www.nuget.org/packages/Bing.Logs.Serilog)|
+|Bing.Datas.Dapper|[![NuGet Badge](https://buildstats.info/nuget/Bing.Datas.Dapper?includePreReleases=true)](https://www.nuget.org/packages/Bing.Datas.Dapper)|
+|Bing.Datas.EntityFramework|[![NuGet Badge](https://buildstats.info/nuget/Bing.Datas.EntityFramework?includePreReleases=true)](https://www.nuget.org/packages/Bing.Datas.EntityFramework)|
+|Bing.Datas.EntityFramework.MySql|[![NuGet Badge](https://buildstats.info/nuget/Bing.Datas.EntityFramework.MySql?includePreReleases=true)](https://www.nuget.org/packages/Bing.Datas.EntityFramework.MySql)|
+|Bing.Datas.EntityFramework.PgSql|[![NuGet Badge](https://buildstats.info/nuget/Bing.Datas.EntityFramework.PgSql?includePreReleases=true)](https://www.nuget.org/packages/Bing.Datas.EntityFramework.PgSql)|
+|Bing.Datas.EntityFramework.SqlServer|[![NuGet Badge](https://buildstats.info/nuget/Bing.Datas.EntityFramework.SqlServer?includePreReleases=true)](https://www.nuget.org/packages/Bing.Datas.EntityFramework.SqlServer)|
+|Bing.Events|[![NuGet Badge](https://buildstats.info/nuget/Bing.Events?includePreReleases=true)](https://www.nuget.org/packages/Bing.Events)|
+|Bing.Applications|[![NuGet Badge](https://buildstats.info/nuget/Bing.Applications?includePreReleases=true)](https://www.nuget.org/packages/Bing.Applications)|
+|Bing.Webs|[![NuGet Badge](https://buildstats.info/nuget/Bing.Webs?includePreReleases=true)](https://www.nuget.org/packages/Bing.Webs)|
+|Bing.Extensions.AutoMapper|[![NuGet Badge](https://buildstats.info/nuget/Bing.Extensions.AutoMapper?includePreReleases=true)](https://www.nuget.org/packages/Bing.Extensions.AutoMapper)|
+|Bing.Extensions.Swashbuckle|[![NuGet Badge](https://buildstats.info/nuget/Bing.Extensions.Swashbuckle?includePreReleases=true)](https://www.nuget.org/packages/Bing.Extensions.Swashbuckle)|
+|Bing.Biz|[![NuGet Badge](https://buildstats.info/nuget/Bing.Biz?includePreReleases=true)](https://www.nuget.org/packages/Bing.Biz)|
+|Bing.MailKit|[![NuGet Badge](https://buildstats.info/nuget/Bing.MailKit?includePreReleases=true)](https://www.nuget.org/packages/Bing.MailKit)|
+|Bing.Geetest|[![NuGet Badge](https://buildstats.info/nuget/Bing.Geetest?includePreReleases=true)](https://www.nuget.org/packages/Bing.Geetest)|
+|Bing.Encryption|[![NuGet Badge](https://buildstats.info/nuget/Bing.Encryption?includePreReleases=true)](https://www.nuget.org/packages/Bing.Encryption)|
+|Bing.ElasticSearch|[![NuGet Badge](https://buildstats.info/nuget/Bing.ElasticSearch?includePreReleases=true)](https://www.nuget.org/packages/Bing.ElasticSearch)|
+|Bing.Sequence|[![NuGet Badge](https://buildstats.info/nuget/Bing.Sequence?includePreReleases=true)](https://www.nuget.org/packages/Bing.Sequence)|
+
+
+
 ## 开发环境以及类库依赖
 
 以下是我们在项目开发和部署时使用的工具和组件，这个列表会经常更新。
@@ -59,6 +91,7 @@ Bing是基于 .net core 2.0 的框架，旨在提升团队的开发输出能力�
   - [NLog](http://nlog-project.org/)
   - log4net
   - [Exceptionless](https://github.com/exceptionless)
+  - [Serilog](https://github.com/serilog/serilog-aspnetcore)
 
 14. 二维码操作
   -	[QRCoder](https://github.com/codebude/QRCoder)
@@ -128,7 +161,7 @@ Bing是基于 .net core 2.0 的框架，旨在提升团队的开发输出能力�
   - 枚举操作 [已发布]
   - 字符串操作 [已发布]
   - Lambda 表达式操作 [已发布]
-  - 日志操作 - 基于 NLog、log4net、Exceptionless [已发布]
+  - 日志操作 - 基于 NLog、log4net、Exceptionless、Serilog [已发布]
   - 日志操作拦截器 [已发布]
   - IQueryable 查询扩展 [已发布]
   - 时间操作 [已发布]
@@ -196,6 +229,12 @@ Bing是基于 .net core 2.0 的框架，旨在提升团队的开发输出能力�
   - 手机号码生成器 [已发布]
   - 姓名生成器 [已发布]
   - 邮箱生成器 [已发布]
+- 缓存操作
+  - 运行时内存缓存操作 [已发布]
+  - Redis 缓存操作 [已发布]
+  - 混合缓存操作 [开发中]
+  - Memcached 缓存操作 [开发中]
+  - SQLite 操作 [开发中]
 - 支付操作
   - 支付宝
   - 微信
@@ -224,7 +263,11 @@ Bing是基于 .net core 2.0 的框架，旨在提升团队的开发输出能力�
 - 2018年07月08日，更新了参数格式化器、参数生成器、Url参数生成器。
 - 2018年07月09日，更新了字节扩展、字符扩展、long扩展、int扩展、double扩展、float扩展、字节数组扩展、List扩展、IEnumerable扩展、文件存储器。
 - 2018年07月10日，更新了二维码操作(Bing.Tools.QrCode，基于QRCoder以及ZXing.Net)以及相关单元测试。
-
+- 2018年09月03日，更新了日志操作(Bing.Logs.Serilog，基于Serilog)。
+- 2018年09月24日，更新了缓存操作(Bing.Caching.InMemory，基于内存)。
+- 2018年09月25日，更新了缓存操作(Bing.Caching.Redis，基于StackExchange.Redis)。
+- 2018年09月26日，更新了缓存操作(Bing.Caching.Hybrid)。
+- 2018年09月27日，更新了缓存操作(Bing.Caching.Memcached)。
 ## 架构说明
 
 ## 常用Api

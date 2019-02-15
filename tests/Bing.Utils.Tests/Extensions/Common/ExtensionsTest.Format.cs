@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Bing.Utils.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 
+// ReSharper disable once CheckNamespace
 namespace Bing.Utils.Tests.Extensions
 {
     /// <summary>
@@ -16,20 +15,16 @@ namespace Bing.Utils.Tests.Extensions
         {
         }
 
+        /// <summary>
+        /// 测试获取布尔值描述
+        /// </summary>
         [Fact]
-        public void Test_FormatMessage()
+        public void Test_Description_Bool()
         {
-            try
-            {
-                int num = 0;
-                num = 1 / num;
-            }
-            catch (Exception e)
-            {
-                Output.WriteLine(e.FormatMessage());
-            }
+            bool? value = null;
+            Assert.Equal("", value.Description());
+            Assert.Equal("是", true.Description());
+            Assert.Equal("否", false.Description());
         }
-
-        
     }
 }

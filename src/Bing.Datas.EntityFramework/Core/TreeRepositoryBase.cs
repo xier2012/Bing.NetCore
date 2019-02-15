@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Bing.Datas.UnitOfWorks;
 using Bing.Domains.Entities.Trees;
 using Bing.Domains.Repositories;
+using Bing.Utils.Extensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Bing.Datas.EntityFramework.Core
 {
@@ -22,6 +23,17 @@ namespace Bing.Datas.EntityFramework.Core
         /// <param name="unitOfWork">工作单元</param>
         protected TreeRepositoryBase(IUnitOfWork unitOfWork) : base(unitOfWork)
         {
+        }
+
+        /// <summary>
+        /// 生成排序号
+        /// </summary>
+        /// <param name="parentId">父标识</param>
+        /// <returns></returns>
+        public override async Task<int> GenerateSortIdAsync(Guid? parentId)
+        {
+            var maxSortId = await Find(x => x.ParentId == parentId).MaxAsync(x => x.SortId);
+            return maxSortId.SafeValue() + 1;
         }
     }
 

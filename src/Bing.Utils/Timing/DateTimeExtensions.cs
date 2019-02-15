@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 
 namespace Bing.Utils.Timing
 {
@@ -31,226 +30,6 @@ namespace Bing.Utils.Timing
         /// </summary>
         public static long InitialJavaScriptDateTicks = (new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).Ticks;
 
-        #endregion
-
-        #region ToDateTimeString(yyyy-MM-dd HH:mm:ss)
-
-        /// <summary>
-        /// 获取格式化字符串，带时分秒，格式："yyyy-MM-dd HH:mm:ss"
-        /// </summary>
-        /// <param name="dateTime">日期</param>
-        /// <param name="isRemoveSecond">是否移除秒,true:是,false:否</param>
-        /// <returns></returns>
-        public static string ToDateTimeString(this DateTime dateTime, bool isRemoveSecond = false)
-        {
-            if (isRemoveSecond)
-            {
-                return dateTime.ToString("yyyy-MM-dd HH:mm");
-            }
-            return dateTime.ToString("yyyy-MM-dd HH:mm:ss");
-        }
-
-        /// <summary>
-        /// 获取格式化字符串，带时分秒，格式："yyyy-MM-dd HH:mm:ss"
-        /// </summary>
-        /// <param name="dateTime">日期</param>
-        /// <param name="isRemoveSecond">是否移除秒,true:是,false:否</param>
-        /// <returns></returns>
-        public static string ToDateTimeString(this DateTime? dateTime, bool isRemoveSecond = false)
-        {
-            if (dateTime == null)
-            {
-                return string.Empty;
-            }
-            return ToDateTimeString(dateTime.Value, isRemoveSecond);
-        }
-
-        #endregion
-
-        #region ToDateString(yyyy-MM-dd)
-
-        /// <summary>
-        /// 获取格式化字符串，不带时分秒，格式："yyyy-MM-dd"
-        /// </summary>
-        /// <param name="dateTime">日期</param>
-        /// <returns></returns>
-        public static string ToDateString(this DateTime dateTime)
-        {
-            return dateTime.ToString("yyyy-MM-dd");
-        }
-
-        /// <summary>
-        /// 获取格式化字符串，不带时分秒，格式："yyyy-MM-dd"
-        /// </summary>
-        /// <param name="dateTime">日期</param>
-        /// <returns></returns>
-        public static string ToDateString(this DateTime? dateTime)
-        {
-            if (dateTime == null)
-            {
-                return string.Empty;
-            }
-            return ToDateString(dateTime.Value);
-        }
-
-        #endregion
-
-        #region ToTimeString(HH:mm:ss)
-
-        /// <summary>
-        /// 获取格式化字符串，不带年月日，格式："HH:mm:ss"
-        /// </summary>
-        /// <param name="dateTime">日期</param>
-        /// <returns></returns>
-        public static string ToTimeString(this DateTime dateTime)
-        {
-            return dateTime.ToString("HH:mm:ss");
-        }
-
-        /// <summary>
-        /// 获取格式化字符串，不带年月日，格式："HH:mm:ss"
-        /// </summary>
-        /// <param name="dateTime">日期</param>
-        /// <returns></returns>
-        public static string ToTimeString(this DateTime? dateTime)
-        {
-            if (dateTime == null)
-            {
-                return string.Empty;
-            }
-            return ToTimeString(dateTime.Value);
-        }
-
-        #endregion
-
-        #region ToMillisecondString(yyyy-MM-dd HH:mm:ss.fff)
-
-        /// <summary>
-        /// 获取格式化字符串，带毫秒，格式："yyyy-MM-dd HH:mm:ss.fff"
-        /// </summary>
-        /// <param name="dateTime">日期</param>
-        /// <returns></returns>
-        public static string ToMillisecondString(this DateTime dateTime)
-        {
-            return dateTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
-        }
-
-        /// <summary>
-        /// 获取格式化字符串，带毫秒，格式："yyyy-MM-dd HH:mm:ss.fff"
-        /// </summary>
-        /// <param name="dateTime">日期</param>
-        /// <returns></returns>
-        public static string ToMillisecondString(this DateTime? dateTime)
-        {
-            if (dateTime == null)
-            {
-                return string.Empty;
-            }
-            return ToMillisecondString(dateTime.Value);
-        }
-
-        #endregion
-
-        #region ToChineseDateString(yyyy年MM月dd日)
-
-        /// <summary>
-        /// 获取格式化字符串，不带时分秒，格式："yyyy年MM月dd日"
-        /// </summary>
-        /// <param name="dateTime">日期</param>
-        /// <returns></returns>
-        public static string ToChineseDateString(this DateTime dateTime)
-        {
-            return string.Format("{0}年{1}月{2}日", dateTime.Year, dateTime.Month, dateTime.Day);
-        }
-
-        /// <summary>
-        /// 获取格式化字符串，不带时分秒，格式："yyyy年MM月dd日"
-        /// </summary>
-        /// <param name="dateTime">日期</param>
-        /// <returns></returns>
-        public static string ToChineseDateString(this DateTime? dateTime)
-        {
-            if (dateTime == null)
-            {
-                return string.Empty;
-            }
-            return ToChineseDateString(dateTime.Value);
-        }
-
-        #endregion
-
-        #region ToChineseDateTimeString(yyyy年MM月dd日 HH时mm分)
-
-        /// <summary>
-        /// 获取格式化字符串，带时分秒，格式："yyyy年MM月dd日 HH时mm分"
-        /// </summary>
-        /// <param name="dateTime">日期</param>
-        /// <param name="isRemoveSecond">是否移除秒</param>
-        /// <returns></returns>
-        public static string ToChineseDateTimeString(this DateTime dateTime, bool isRemoveSecond = false)
-        {
-            StringBuilder result = new StringBuilder();
-            result.AppendFormat("{0}年{1}月{2}日", dateTime.Year, dateTime.Month, dateTime.Day);
-            result.AppendFormat(" {0}时{1}分", dateTime.Hour, dateTime.Minute);
-            if (isRemoveSecond == false)
-            {
-                result.AppendFormat("{0}秒", dateTime.Second);
-            }
-            return result.ToString();
-        }
-
-        /// <summary>
-        /// 获取格式化字符串，带时分秒，格式："yyyy年MM月dd日 HH时mm分"
-        /// </summary>
-        /// <param name="dateTime">日期</param>
-        /// <param name="isRemoveSecond">是否移除秒</param>
-        /// <returns></returns>
-        public static string ToChineseDateTimeString(this DateTime? dateTime, bool isRemoveSecond = false)
-        {
-            if (dateTime == null)
-            {
-                return string.Empty;
-            }
-            return ToChineseDateTimeString(dateTime.Value, isRemoveSecond);
-        }
-
-        #endregion
-
-        #region Description(获取描述)
-        /// <summary>
-        /// 获取描述
-        /// </summary>
-        /// <param name="span">时间间隔</param>
-        /// <returns></returns>
-        public static string Description(this TimeSpan span)
-        {
-            StringBuilder result = new StringBuilder();
-            if (span.Days > 0)
-            {
-                result.AppendFormat("{0}天", span.Days);
-            }
-            if (span.Hours > 0)
-            {
-                result.AppendFormat("{0}小时", span.Hours);
-            }
-            if (span.Minutes > 0)
-            {
-                result.AppendFormat("{0}分", span.Minutes);
-            }
-            if (span.Seconds > 0)
-            {
-                result.AppendFormat("{0}秒", span.Seconds);
-            }
-            if (span.Milliseconds > 0)
-            {
-                result.AppendFormat("{0}毫秒", span.Milliseconds);
-            }
-            if (result.Length > 0)
-            {
-                return result.ToString();
-            }
-            return $"{span.TotalMilliseconds * 1000}毫秒";
-        }
         #endregion
 
         #region IsWeekend(当前时间是否周末)
@@ -353,7 +132,7 @@ namespace Bing.Utils.Timing
 
         #region EndOfDay(设置指定时间为当天的结束时间)
         /// <summary>
-        /// 设置指定时间为当天的结束时间，23:59:59.999
+        /// 设置指定时间为当天的结束时间。范例：yyyy-MM-dd 23:59:59.999
         /// </summary>
         /// <param name="date">指定时间</param>
         /// <returns>当天的结束时间</returns>
@@ -365,15 +144,42 @@ namespace Bing.Utils.Timing
 
         #region BeginOfDay(设置指定时间为当天的开始时间)
         /// <summary>
-        /// 设置指定时间为当天的开始时间（凌晨）,00:00:00
+        /// 设置指定时间为当天的开始时间（凌晨）。范例：yyyy-MM-dd 00:00:00
         /// </summary>
         /// <param name="time">指定时间</param>
         /// <returns>当天的开始时间</returns>
         public static DateTime BeginOfDay(this DateTime time)
         {
-
             return time.SetTime(0, 0, 0, 0);
         }
+        #endregion
+
+        #region EndOfMonth(设置指定时间为当月的结束时间)
+
+        /// <summary>
+        /// 设置指定时间为当月的结束时间。范例：yyyy-MM-dd 23:59:59:999
+        /// </summary>
+        /// <param name="date">时间</param>
+        /// <returns>当月的结束时间</returns>
+        public static DateTime EndOfMonth(this DateTime date)
+        {
+            return new DateTime(date.Year, date.Month, DateTime.DaysInMonth(date.Year, date.Month), 23, 59, 59, 999);
+        }
+
+        #endregion
+
+        #region BeginOfMonth(设置指定时间为当月的开始时间)
+
+        /// <summary>
+        /// 设置指定时间为当月的开始时间。范例：yyyy-MM-01 00:00:00.000
+        /// </summary>
+        /// <param name="date">时间</param>
+        /// <returns>当月的开始时间</returns>
+        public static DateTime BeginOfMonth(this DateTime date)
+        {
+            return new DateTime(date.Year, date.Month, 1, 0, 0, 0, 0);
+        }
+
         #endregion
 
         #region GetFirstDayOfMonth(获取指定日期的月份第一天)
@@ -565,6 +371,23 @@ namespace Bing.Utils.Timing
 
         #endregion
 
+        #region IsBetween(判断当前时间是否在指定时间范围内)
+
+        /// <summary>
+        /// 判断当前时间是否在指定时间范围内，格式：yyyy-MM-dd HH:mm:ss
+        /// </summary>
+        /// <param name="current">当前时间</param>
+        /// <param name="begin">开始时间</param>
+        /// <param name="end">结束时间</param>
+        /// <returns></returns>
+        public static bool IsBetween(this DateTime current, DateTime begin, DateTime end)
+        {
+            var ticks = current.Ticks;
+            return ticks >= begin.Ticks && ticks <= end.Ticks;
+        }
+
+        #endregion
+
         #region IsValid(是否有效时间)
 
         /// <summary>
@@ -575,6 +398,94 @@ namespace Bing.Utils.Timing
         public static bool IsValid(this DateTime value)
         {
             return (value >= MinDate) && (value <= MaxDate);
+        }
+
+        #endregion
+
+        #region ToTimeStamp(将时间转换为时间戳)
+
+        /// <summary>
+        /// 将时间转换为时间戳
+        /// </summary>
+        /// <param name="time">时间</param>
+        /// <returns></returns>
+        public static int ToTimeStamp(this DateTime time)
+        {
+            return (int) (time.ToUniversalTime().Ticks / 10000000 - 62135596800);
+        }
+
+        #endregion
+
+        #region CsharpTime2JavascriptTime(将C#时间转换为Javascript时间)
+
+        /// <summary>
+        /// 将C#时间转换为Javascript时间
+        /// </summary>
+        /// <param name="dateTime">时间</param>
+        /// <returns></returns>
+        public static long CsharpTime2JavascriptTime(this DateTime dateTime)
+        {
+            return (long) new TimeSpan(dateTime.Ticks - Date1970.Ticks).TotalMilliseconds;
+        }
+
+        #endregion
+
+        #region PhpTime2CsharpTime(将PHP时间转换为C#时间)
+
+        /// <summary>
+        /// 将PHP时间转换为C#时间
+        /// </summary>
+        /// <param name="dateTime">时间</param>
+        /// <param name="time">PHP的时间</param>
+        /// <returns></returns>
+        public static DateTime PhpTime2CsharpTime(this DateTime dateTime, long time)
+        {
+            long t = (time + 8 * 60 * 60) * 10000000 + Date1970.Ticks;
+            return new DateTime(t);
+        }
+
+        #endregion
+
+        #region CsharpTime2PhpTime(将C#时间转换为PHP时间)
+
+        /// <summary>
+        /// 将C#时间转换为PHP时间
+        /// </summary>
+        /// <param name="dateTime">时间</param>
+        /// <returns></returns>
+        public static long CsharpTime2PhpTime(this DateTime dateTime)
+        {
+            return (DateTime.UtcNow.Ticks - Date1970.Ticks) / 10000000;
+        }
+
+        #endregion
+
+        #region AddWeeks(添加星期)
+
+        /// <summary>
+        /// 添加星期
+        /// </summary>
+        /// <param name="dateTime">时间</param>
+        /// <param name="weeks">周</param>
+        /// <returns></returns>
+        public static DateTime AddWeeks(this DateTime dateTime, int weeks)
+        {
+            return dateTime.AddDays(weeks * 7);
+        }
+
+        #endregion
+
+        #region ConvertToTimeZone(将当前时间转换为特定时区的时间)
+
+        /// <summary>
+        /// 将当前时间转换为特定时区的时间
+        /// </summary>
+        /// <param name="dateTime">时间</param>
+        /// <param name="timeZone">时区</param>
+        /// <returns></returns>
+        public static DateTime ConvertToTimeZone(this DateTime dateTime, TimeZoneInfo timeZone)
+        {
+            return TimeZoneInfo.ConvertTime(dateTime, timeZone);
         }
 
         #endregion

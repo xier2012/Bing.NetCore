@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Bing.Logs.Abstractions;
 using Bing.Logs.Formats;
 using NLogs = NLog;
@@ -39,6 +35,11 @@ namespace Bing.Logs.NLog
         /// 跟踪级别是否启用
         /// </summary>
         public bool IsTraceEnabled => _logger.IsTraceEnabled;
+
+        /// <summary>
+        /// 是否分布式日志
+        /// </summary>
+        public bool IsDistributedLog => false;
 
         #endregion
 

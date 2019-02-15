@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Bing.Helpers;
-using Bing.Logs.Aspects;
-using Bing.Properties;
+﻿using Bing.Logs;
 using Bing.Sessions;
 using Bing.Webs.Commons;
 using Bing.Webs.Filters;
@@ -16,26 +11,39 @@ namespace Bing.Webs.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]/[action]")]
-    [ExceptionHandler]
     [ErrorLog]
-    public class ApiControllerBase:Controller
+    [TraceLog]
+    public abstract class ApiControllerBase:Controller
     {
         /// <summary>
-        /// 会话
+        /// 日志
         /// </summary>
-        private readonly ISession _session;
+        private ILog _log;
+
+        /// <summary>
+        /// 日志
+        /// </summary>
+        public ILog Log => _log ?? (_log = GetLog());
 
         /// <summary>
         /// 会话
         /// </summary>
-        public virtual ISession Session => _session ?? NullSession.Instance;
+        public virtual ISession Session => Security.Sessions.Session.Instance;
 
         /// <summary>
-        /// 初始化一个<see cref="ApiControllerBase"/>类型的实例
+        /// 获取日志操作
         /// </summary>
-        public ApiControllerBase()
+        /// <returns></returns>
+        protected virtual ILog GetLog()
         {
-            _session = Ioc.Create<ISession>();
+            try
+            {
+                return Logs.Log.GetLog(this);
+            }
+            catch
+            {
+                return Logs.Log.Null;
+            }
         }
 
         /// <summary>

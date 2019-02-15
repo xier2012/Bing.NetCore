@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Bing.Exceptions;
 using Bing.Logs.Contents;
 using Bing.Logs.Properties;
+using Bing.Utils.Extensions;
+using Bing.Utils.Helpers;
 
 namespace Bing.Logs.Extensions
 {
@@ -18,7 +23,15 @@ namespace Bing.Logs.Extensions
         /// <returns></returns>
         public static ILog BussinessId(this ILog log, string bussinessId)
         {
-            return log.Set<LogContent>(content => content.BussinessId = bussinessId);
+            return log.Set<LogContent>(content =>
+            {
+                if (string.IsNullOrWhiteSpace(content.BussinessId) == false)
+                {
+                    content.BussinessId += ",";
+                }
+
+                content.BussinessId += bussinessId;
+            });
         }
 
         /// <summary>
@@ -58,17 +71,53 @@ namespace Bing.Logs.Extensions
         /// 设置参数
         /// </summary>
         /// <param name="log">日志操作</param>
-        /// <param name="type">参数类型</param>
-        /// <param name="name">参数名</param>
         /// <param name="value">参数值</param>
         /// <returns></returns>
-        public static ILog Params(this ILog log, string type, string name, string value)
+        public static ILog Params(this ILog log, string value)
         {
-            return
-                log.Set<LogContent>(
-                    content =>
-                        content.AppendLine(content.Params,
-                            $"{LogResource.ParameterType}: {type}, {LogResource.ParameterName}: {name}, {LogResource.ParameterValue}: {value}。"));
+            return log.Set<LogContent>(content => content.AppendLine(content.Params, value));
+        }
+
+        /// <summary>
+        /// 设置参数
+        /// </summary>
+        /// <param name="log">日志操作</param>
+        /// <param name="name">参数名</param>
+        /// <param name="value">参数值</param>
+        /// <param name="type">参数类型</param>
+        /// <returns></returns>
+        public static ILog Params(this ILog log, string name, string value, string type = null)
+        {
+            return log.Set<LogContent>(content =>
+            {
+                if (string.IsNullOrWhiteSpace(type))
+                {
+                    content.AppendLine(content.Params,
+                        $"{LogResource.ParameterName}: {name}, {LogResource.ParameterValue}: {value}");
+                    return;
+                }
+                content.AppendLine(content.Params,
+                    $"{LogResource.ParameterType}: {type}, {LogResource.ParameterName}: {name}, {LogResource.ParameterValue}: {value}");
+            });
+        }
+
+        /// <summary>
+        /// 设置参数
+        /// </summary>
+        /// <param name="log">日志操作</param>
+        /// <param name="dictionary">字典</param>
+        /// <returns></returns>
+        public static ILog Params(this ILog log, IDictionary<string, object> dictionary)
+        {
+            if (dictionary == null || dictionary.Count == 0)
+            {
+                return log;
+            }
+            foreach (var item in dictionary)
+            {
+                Params(log, item.Key, item.Value.SafeString());
+            }
+            return log;
         }
 
         /// <summary>
@@ -90,7 +139,7 @@ namespace Bing.Logs.Extensions
         /// <returns></returns>
         public static ILog Sql(this ILog log, string value)
         {
-            return log.Set<LogContent>(content => content.AppendLine(content.Sql, value));
+            return log.Set<LogContent>(content => content.Sql.AppendLine(value));
         }
 
         /// <summary>
@@ -102,6 +151,56 @@ namespace Bing.Logs.Extensions
         public static ILog SqlParams(this ILog log, string value)
         {
             return log.Set<LogContent>(content => content.AppendLine(content.SqlParams, value));
+        }
+
+        /// <summary>
+        /// 设置Sql参数
+        /// </summary>
+        /// <param name="log">日志操作</param>
+        /// <param name="list">键值对列表</param>
+        /// <returns></returns>
+        public static ILog SqlParams(this ILog log, IEnumerable<KeyValuePair<string, object>> list)
+        {
+            if (list == null)
+            {
+                return log;
+            }
+            var dictionary = list.ToList();
+            if (dictionary.Count == 0)
+            {
+                return log;
+            }
+            var result = new StringBuilder();
+            foreach (var item in dictionary)
+            {
+                result.AppendLine($"    {item.Key} : {GetParamLiterals(item.Value)} : {item.Value?.GetType()},");
+            }
+
+            return SqlParams(log, result.ToString().RemoveEnd($",{Common.Line}"));
+        }
+
+        /// <summary>
+        /// 获取参数字面值
+        /// </summary>
+        /// <param name="value">参数值</param>
+        private static string GetParamLiterals(object value)
+        {
+            if (value == null)
+                return "''";
+            switch (value.GetType().Name.ToLower())
+            {
+                case "boolean":
+                    return Conv.ToBool(value) ? "1" : "0";
+                case "int16":
+                case "int32":
+                case "int64":
+                case "single":
+                case "double":
+                case "decimal":
+                    return value.SafeString();
+                default:
+                    return $"'{value}'";
+            }
         }
 
         /// <summary>
@@ -117,7 +216,12 @@ namespace Bing.Logs.Extensions
             {
                 return log;
             }
-            return Exception(log, new Warning("", errorCode, exception));
+
+            return log.Set<LogContent>(content =>
+            {
+                content.Exception = exception;
+                content.ErrorCode = errorCode;
+            });
         }
 
         /// <summary>
@@ -132,37 +236,8 @@ namespace Bing.Logs.Extensions
             {
                 return log;
             }
-            return log.Set<LogContent>(content =>
-            {
-                content.ErrorCode = exception.Code;
-                content.Exception = exception;
-            });
-        }
 
-        /// <summary>
-        /// 获取Sql语句
-        /// </summary>
-        /// <param name="log">日志操作</param>
-        /// <returns></returns>
-        public static string GetSql(this ILog log)
-        {
-            var content=log.Get<LogContent>();
-            return content.Sql.ToString();
-        }
-
-        /// <summary>
-        /// 替换Sql语句
-        /// </summary>
-        /// <param name="log">日志操作</param>
-        /// <param name="value">值</param>
-        /// <returns></returns>
-        public static ILog ReplaceSql(this ILog log, string value)
-        {
-            return log.Set<LogContent>(content =>
-            {
-                content.Sql.Clear();
-                content.Sql.Append(value);
-            });
+            return Exception(log, exception, exception.Code);
         }
     }
 }

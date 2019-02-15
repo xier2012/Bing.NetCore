@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace Bing.Dependency
 {
@@ -14,6 +11,6 @@ namespace Bing.Dependency
         /// 注册依赖
         /// </summary>
         /// <param name="services">服务集合</param>
-        void Regist(IServiceCollection services);
+        void Register(IServiceCollection services);
     }
 }

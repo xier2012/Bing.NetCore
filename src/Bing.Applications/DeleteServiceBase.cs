@@ -14,6 +14,35 @@ using Bing.Utils.Helpers;
 
 namespace Bing.Applications
 {
+    /// <summary>
+    /// 删除服务
+    /// </summary>
+    /// <typeparam name="TEntity">实体类型</typeparam>
+    /// <typeparam name="TDto">数据传输对象类型</typeparam>
+    /// <typeparam name="TQueryParameter">查询参数类型</typeparam>
+    public abstract class DeleteServiceBase<TEntity, TDto, TQueryParameter> : DeleteServiceBase<TEntity, TDto, TQueryParameter, Guid>
+        where TEntity : class, IKey<Guid>, IVersion, new()
+        where TDto : IResponse, new()
+        where TQueryParameter : IQueryParameter
+    {
+        /// <summary>
+        /// 初始化一个<see cref="DeleteServiceBase{TEntity,TDto,TQueryParameter}"/>类型的实例
+        /// </summary>
+        /// <param name="unitOfWork">工作单元</param>
+        /// <param name="store">存储器</param>
+        protected DeleteServiceBase(IUnitOfWork unitOfWork, IStore<TEntity, Guid> store) : base(unitOfWork, store)
+        {
+        }
+    }
+
+
+    /// <summary>
+    /// 删除服务
+    /// </summary>
+    /// <typeparam name="TEntity">实体类型</typeparam>
+    /// <typeparam name="TDto">数据传输对象类型</typeparam>
+    /// <typeparam name="TQueryParameter">查询参数类型</typeparam>
+    /// <typeparam name="TKey">实体标识类型</typeparam>
     public abstract class DeleteServiceBase<TEntity, TDto, TQueryParameter, TKey>:QueryServiceBase<TEntity, TDto, TQueryParameter, TKey>,IDeleteService<TDto, TQueryParameter> 
         where TEntity : class, IKey<TKey>, IVersion, new()
         where TDto : IResponse, new()
@@ -45,6 +74,8 @@ namespace Bing.Applications
             _store = store;
             EntityDescription = Reflection.GetDisplayNameOrDescription<TEntity>();
         }
+
+        #region WriteLog(写日志)
 
         /// <summary>
         /// 写日志
@@ -102,11 +133,13 @@ namespace Bing.Applications
             }
         }
 
+        #endregion
+
         /// <summary>
         /// 删除
         /// </summary>
         /// <param name="ids">用逗号分隔的Id列表，范例："1,2"</param>
-        public void Delete(string ids)
+        public virtual void Delete(string ids)
         {
             if (string.IsNullOrWhiteSpace(ids))
             {
@@ -130,7 +163,7 @@ namespace Bing.Applications
         /// </summary>
         /// <param name="ids">用逗号分隔的Id列表，范例："1,2"</param>
         /// <returns></returns>
-        public async Task DeleteAsync(string ids)
+        public virtual async Task DeleteAsync(string ids)
         {
             if (string.IsNullOrWhiteSpace(ids))
             {

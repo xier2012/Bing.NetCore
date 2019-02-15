@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Bing.Properties;
 using Bing.Utils.Extensions;
+using Bing.Utils.Helpers;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Bing.Exceptions.Prompts
 {
@@ -14,7 +15,12 @@ namespace Bing.Exceptions.Prompts
         /// <summary>
         /// 异常提示组件集合
         /// </summary>
-        private static readonly List<IExceptionPrompt> Prompts=new List<IExceptionPrompt>();
+        private static readonly List<IExceptionPrompt> Prompts = new List<IExceptionPrompt>();
+
+        /// <summary>
+        /// 是否显示系统异常消息
+        /// </summary>
+        public static bool IsShowSystemException { get; set; }
 
         /// <summary>
         /// 添加异常提示
@@ -31,6 +37,7 @@ namespace Bing.Exceptions.Prompts
             {
                 return;
             }
+
             Prompts.Add(prompt);
         }
 
@@ -41,6 +48,10 @@ namespace Bing.Exceptions.Prompts
         /// <returns></returns>
         public static string GetPrompty(Exception exception)
         {
+            if (exception == null)
+            {
+                return null;
+            }
             exception = exception.GetRawException();
             var prompt = GetExceptionPrompt(exception);
             if (string.IsNullOrWhiteSpace(prompt) == false)
@@ -51,6 +62,11 @@ namespace Bing.Exceptions.Prompts
             if (exception is Warning warning)
             {
                 return warning.Message;
+            }
+
+            if (Web.Environment.IsDevelopment() || IsShowSystemException)
+            {
+                return exception.Message;
             }
 
             return R.SystemError;

@@ -1,8 +1,10 @@
-﻿using Bing.Helpers;
+﻿using System;
+using Bing.Helpers;
 using Bing.Logs.Abstractions;
 using Bing.Logs.Contents;
 using Bing.Logs.Core;
 using Bing.Logs.Formats;
+using Bing.Security.Extensions;
 using Bing.Sessions;
 
 namespace Bing.Logs
@@ -16,6 +18,11 @@ namespace Bing.Logs
         /// 类名
         /// </summary>
         private readonly string _class;
+
+        /// <summary>
+        /// 空日志操作
+        /// </summary>
+        public static readonly ILog Null = NullLog.Instance;
 
         /// <summary>
         /// 初始化一个<see cref="Log"/>类型的实例
@@ -42,6 +49,20 @@ namespace Bing.Logs
         }
 
         /// <summary>
+        /// 初始化一个<see cref="Log"/>类型的实例
+        /// </summary>
+        /// <param name="name">名称</param>
+        /// <param name="provider">日志提供程序</param>
+        /// <param name="context">日志上下文</param>
+        /// <param name="session">用户会话</param>
+        /// <param name="class">类名</param>
+        public Log(string name, ILogProvider provider, ILogContext context, ISession session, string @class) : base(
+            name, provider, context, session)
+        {
+            _class = @class;
+        }
+
+        /// <summary>
         /// 获取日志内容
         /// </summary>
         /// <returns></returns>
@@ -57,48 +78,44 @@ namespace Bing.Logs
         protected override void Init(LogContent content)
         {
             base.Init(content);
-            //content.Tenant = Session.GetTenant();
-            //content.Application = UserContext.GetApplication();
-            //content.Operator = UserContext.GetFullName();
-            //content.Role = UserContext.GetRoleName();
+            content.Tenant = Session.GetTenantName();
+            content.Application = Session.GetApplicationName();
+            content.Operator = Session.GetFullName();
+            content.Role = Session.GetRoleName();
         }
 
         /// <summary>
         /// 获取日志操作实例
         /// </summary>
-        /// <param name="name">服务名</param>
         /// <returns></returns>
-        public static ILog GetLog(string name = null)
+        public static ILog GetLog()
         {
-            return GetLogByName(string.Empty, name);
+            return GetLog(string.Empty);
         }
 
         /// <summary>
         /// 获取日志操作实例
         /// </summary>
         /// <param name="instance">实例</param>
-        /// <param name="name">服务名</param>
         /// <returns></returns>
-        public static ILog GetLog(object instance, string name = null)
+        public static ILog GetLog(object instance)
         {
             if (instance == null)
             {
                 return GetLog();
             }
-
             var className = instance.GetType().ToString();
-            return GetLog(className, className, name);
+            return GetLog(className, className);
         }
 
         /// <summary>
         /// 获取日志操作实例
         /// </summary>
         /// <param name="logName">日志名称</param>
-        /// <param name="name">服务名</param>
         /// <returns></returns>
-        public static ILog GetLogByName(string logName, string name = null)
+        public static ILog GetLog(string logName)
         {
-            return GetLog(logName, string.Empty, name);
+            return GetLog(logName, string.Empty);
         }
 
         /// <summary>
@@ -106,27 +123,41 @@ namespace Bing.Logs
         /// </summary>
         /// <param name="logName">日志名称</param>
         /// <param name="class">类名</param>
-        /// <param name="name">服务名</param>
         /// <returns></returns>
-        private static ILog GetLog(string logName, string @class,string name)
+        private static ILog GetLog(string logName, string @class)
         {
-            var providerFactory = Ioc.Create<ILogProviderFactory>(name);
-            var format = GetLogFormat(name);
-            var context = GetLogContext(name);
-            var session = GetSession(name);
+            var providerFactory = GetLogProviderFactory();
+            var format = GetLogFormat();
+            var context = GetLogContext();
+            var session = GetSession();
             return new Log(providerFactory.Create(logName, format), context, session, @class);
+        }
+
+        /// <summary>
+        /// 获取日志提供程序工厂
+        /// </summary>
+        /// <returns></returns>
+        private static ILogProviderFactory GetLogProviderFactory()
+        {
+            try
+            {
+                return Ioc.Create<ILogProviderFactory>();
+            }
+            catch
+            {
+                return NullLogProviderFactory.Instance;
+            }
         }
 
         /// <summary>
         /// 获取日志格式器
         /// </summary>
-        /// <param name="name">服务名称</param>
         /// <returns></returns>
-        private static ILogFormat GetLogFormat(string name)
+        private static ILogFormat GetLogFormat()
         {
             try
             {
-                return Ioc.Create<ILogFormat>(name);
+                return Ioc.Create<ILogFormat>();
             }
             catch
             {
@@ -137,13 +168,12 @@ namespace Bing.Logs
         /// <summary>
         /// 获取日志上下文
         /// </summary>
-        /// <param name="name">服务名称</param>
         /// <returns></returns>
-        private static ILogContext GetLogContext(string name)
+        private static ILogContext GetLogContext()
         {
             try
             {
-                return Ioc.Create<ILogContext>(name);
+                return Ioc.Create<ILogContext>();
             }
             catch
             {
@@ -154,23 +184,17 @@ namespace Bing.Logs
         /// <summary>
         /// 获取用户会话
         /// </summary>
-        /// <param name="name">服务名</param>
         /// <returns></returns>
-        private static ISession GetSession(string name)
+        private static ISession GetSession()
         {
             try
             {
-                return Ioc.Create<ISession>(name);
+                return Ioc.Create<ISession>();
             }
             catch
             {
-                return NullSession.Instance;
+                return Security.Sessions.Session.Instance;
             }
-        }
-
-        /// <summary>
-        /// 空日志操作
-        /// </summary>
-        public static readonly ILog Null = NullLog.Instance;
+        }        
     }
 }

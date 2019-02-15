@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using Bing.Datas.Queries;
-using Bing.Datas.Queries.Criterias;
-using Bing.Datas.Queries.Internal;
+﻿using Bing.Datas.Queries.Internal;
 using Bing.Domains.Repositories;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Dynamic.Core;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Bing.Datas.EntityFramework.Extensions
 {
@@ -18,6 +12,42 @@ namespace Bing.Datas.EntityFramework.Extensions
     /// </summary>
     public static partial class QueryableExtensions
     {
+        #region Page(分页，包含排序)
+
+        /// <summary>
+        /// 分页，包含排序
+        /// </summary>
+        /// <typeparam name="TEntity">实体类型</typeparam>
+        /// <param name="query">数据源</param>
+        /// <param name="pager">分页对象</param>
+        /// <returns></returns>
+        public static async Task<IQueryable<TEntity>> PageAsync<TEntity>(this IQueryable<TEntity> query, IPager pager)
+        {
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+            if (pager == null)
+            {
+                throw new ArgumentNullException(nameof(pager));
+            }
+
+            Helper.InitOrder(query, pager);
+            if (pager.TotalCount <= 0)
+            {
+                pager.TotalCount = await query.CountAsync();
+            }
+
+            var orderedQueryable = Helper.GetOrderedQueryable(query, pager);
+            if (orderedQueryable == null)
+            {
+                throw new ArgumentException("必须设置排序字段");
+            }
+
+            return orderedQueryable.Skip(pager.GetSkipCount()).Take(pager.PageSize);
+        }
+
+        #endregion
 
         #region ToPagerListAsync(转换为分页列表)
 
@@ -39,7 +69,9 @@ namespace Bing.Datas.EntityFramework.Extensions
             {
                 throw new ArgumentNullException(nameof(pager));
             }
-            return new PagerList<TEntity>(pager,await query.Page(pager).ToListAsync());
+
+            query = await query.PageAsync(pager);
+            return new PagerList<TEntity>(pager, await query.ToListAsync());
         }
 
         #endregion

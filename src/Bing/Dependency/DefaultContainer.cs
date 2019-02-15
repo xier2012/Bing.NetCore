@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Autofac;
 using Bing.Utils.Helpers;
 using Microsoft.Extensions.DependencyInjection;
@@ -170,11 +169,13 @@ namespace Bing.Dependency
         {
             var builder=new ContainerBuilder();
             actionBefore?.Invoke(builder);
-            foreach (var config in configs)
+            if (configs != null)
             {
-                builder.RegisterModule(config);
+                foreach (var config in configs)
+                {
+                    builder.RegisterModule(config);
+                }
             }
-
             if (services != null)
             {
                 builder.Populate(services);

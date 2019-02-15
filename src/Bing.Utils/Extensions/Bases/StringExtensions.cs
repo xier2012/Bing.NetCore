@@ -13,7 +13,6 @@ using System.Web;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using Bing.Utils.Helpers;
 using Enum = System.Enum;
 
 // ReSharper disable once CheckNamespace
@@ -479,12 +478,19 @@ namespace Bing.Utils.Extensions
         /// <returns></returns>
         public static string RemoveEnd(this string value, string defaultChar = ",")
         {
-            if (!value.IsEmpty())
+            if (string.IsNullOrWhiteSpace(value))
             {
-                if (value.EndsWith(defaultChar))
-                {
-                    value = value.Substring(0, value.LastIndexOf(defaultChar, StringComparison.Ordinal));
-                }
+                return string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(defaultChar))
+            {
+                return value.SafeString();
+            }
+
+            if (value.ToLower().EndsWith(defaultChar.ToLower()))
+            {
+                return value.Remove(value.Length - defaultChar.Length, defaultChar.Length);
             }
             return value;
         }

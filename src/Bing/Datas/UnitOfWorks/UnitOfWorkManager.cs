@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Bing.Datas.UnitOfWorks
@@ -20,7 +19,7 @@ namespace Bing.Datas.UnitOfWorks
         /// </summary>
         public UnitOfWorkManager()
         {
-            _unitOfWorks=new List<IUnitOfWork>();
+            _unitOfWorks = new List<IUnitOfWork>();
         }
 
         /// <summary>

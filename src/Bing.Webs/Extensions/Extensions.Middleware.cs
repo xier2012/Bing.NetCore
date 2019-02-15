@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Bing.Utils.Helpers;
+﻿using Bing.Utils.Helpers;
 using Bing.Webs.Middlewares;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -15,13 +12,23 @@ namespace Bing.Webs.Extensions
     public static partial class Extensions
     {
         /// <summary>
-        /// 注册错误日志管道
+        /// 注册错误日志中间件
         /// </summary>
         /// <param name="builder">应用程序生成器</param>
         /// <returns></returns>
         public static IApplicationBuilder UseErrorLog(this IApplicationBuilder builder)
         {
             return builder.UseMiddleware<ErrorLogMiddleware>();
+        }
+
+        /// <summary>
+        /// 注册请求日志中间件
+        /// </summary>
+        /// <param name="builder">应用程序生成器</param>
+        /// <returns></returns>
+        public static IApplicationBuilder UseRequestLog(this IApplicationBuilder builder)
+        {
+            return builder.UseMiddleware<RequestLogMiddleware>();
         }
 
         /// <summary>
